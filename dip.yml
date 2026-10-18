@@ -39,12 +39,12 @@ interaction:
   ridgepole:
     description: db/Schemafile を DB に反映（例 dip ridgepole、dip ridgepole --dry-run）
     service: web
-    command: bundle exec ridgepole -c config/database.yml -E development -s primary -f db/Schemafile --apply
+    command: bundle exec ridgepole -c config/database.yml -E development -s primary -f db/Schemafile --apply --pg-change-table-comment
     subcommands:
       test:
         description: テスト用 DB に反映
         service: web
-        command: bundle exec ridgepole -c config/database.yml -E test -s primary -f db/Schemafile --apply
+        command: bundle exec ridgepole -c config/database.yml -E test -s primary -f db/Schemafile --apply --pg-change-table-comment
 
   psql:
     description: 開発用 DB に psql で接続

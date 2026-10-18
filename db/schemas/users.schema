@@ -1,8 +1,8 @@
-create_table "users", force: :cascade do |t|
-  t.string "email_address", null: false
-  t.string "password_digest", null: false
-  t.boolean "admin", default: false, null: false
-  t.datetime "approved_at"
+create_table :users, force: :cascade, comment: "ユーザー" do |t|
+  t.string :email_address, null: false, comment: "メールアドレス（ログイン ID）"
+  t.string :password_digest, null: false, comment: "パスワードのハッシュ"
+  t.boolean :admin, default: false, null: false, comment: "管理者か"
+  t.datetime :approved_at, comment: "管理者が承認した日時（未承認は空）"
   t.timestamps
-  t.index [ "email_address" ], unique: true
+  t.index [ :email_address ], unique: true
 end

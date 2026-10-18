@@ -1,6 +1,6 @@
 CI.run do
   step "DB: Test reset", "env RAILS_ENV=test bin/rails db:drop:primary db:create:primary db:extensions"
-  step "DB: Test schema", "bundle exec ridgepole -c config/database.yml -E test -s primary -f db/Schemafile --apply"
+  step "DB: Test schema", "bundle exec ridgepole -c config/database.yml -E test -s primary -f db/Schemafile --apply --pg-change-table-comment"
   step "DB: Test queue schema", "env RAILS_ENV=test bin/rails db:schema:load:queue"
 
   step "Style: Ruby", "bin/rubocop"

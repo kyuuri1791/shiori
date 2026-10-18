@@ -1,23 +1,23 @@
-create_table "user_shelf_items", force: :cascade do |t|
-  t.references "user", null: false, index: false, foreign_key: true
-  t.references "book", foreign_key: true
-  t.string "isbn13"
-  t.string "title", null: false
-  t.string "author", null: false, default: ""
-  t.integer "status", null: false, default: 1
-  t.integer "rating", null: false, default: 0
-  t.string "tags", array: true, null: false, default: []
-  t.text "review", null: false, default: ""
-  t.jsonb "notes", null: false, default: []
-  t.date "last_read_on"
-  t.datetime "discarded_at"
+create_table :user_shelf_items, force: :cascade, comment: "ユーザーの本棚の本" do |t|
+  t.references :user, null: false, index: false, foreign_key: true, comment: "持ち主"
+  t.references :book, foreign_key: true, comment: "本のマスタ（紐付かない本は空）"
+  t.string :isbn13, comment: "ISBN"
+  t.string :title, null: false, comment: "書名"
+  t.string :author, null: false, default: "", comment: "著者"
+  t.integer :status, null: false, default: 1, comment: "1=読みたい 2=読んでる 3=読んだ"
+  t.integer :rating, null: false, default: 0, comment: "評価（0=なし）"
+  t.string :tags, array: true, null: false, default: [], comment: "タグ"
+  t.text :review, null: false, default: "", comment: "感想"
+  t.jsonb :notes, null: false, default: [], comment: "メモ"
+  t.date :last_read_on, comment: "最後の読了日"
+  t.datetime :discarded_at, comment: "論理削除した日時"
   t.timestamps
-  t.index [ "user_id", "discarded_at" ]
-  t.index [ "isbn13" ]
-  t.index [ "user_id", "book_id" ], unique: true, name: "index_user_shelf_items_on_user_book_kept", where: "((discarded_at IS NULL) AND (book_id IS NOT NULL))"
-  t.index [ "user_id", "isbn13" ], unique: true, name: "index_user_shelf_items_on_user_isbn13_kept", where: "((discarded_at IS NULL) AND (isbn13 IS NOT NULL))"
-  t.index [ "tags" ], using: :gin
-  t.index [ "user_id", "last_read_on" ]
+  t.index [ :user_id, :discarded_at ]
+  t.index [ :isbn13 ]
+  t.index [ :user_id, :book_id ], unique: true, name: "index_user_shelf_items_on_user_book_kept", where: "((discarded_at IS NULL) AND (book_id IS NOT NULL))"
+  t.index [ :user_id, :isbn13 ], unique: true, name: "index_user_shelf_items_on_user_isbn13_kept", where: "((discarded_at IS NULL) AND (isbn13 IS NOT NULL))"
+  t.index [ :tags ], using: :gin
+  t.index [ :user_id, :last_read_on ]
 end
 
-add_check_constraint "user_shelf_items", "status = ANY (ARRAY[1, 2, 3])", name: "user_shelf_items_status_range"
+add_check_constraint :user_shelf_items, "status = ANY (ARRAY[1, 2, 3])", name: "user_shelf_items_status_range"

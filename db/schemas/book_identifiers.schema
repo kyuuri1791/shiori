@@ -1,9 +1,9 @@
-create_table "book_identifiers", force: :cascade do |t|
-  t.references "book", null: false, foreign_key: true
-  t.string "scheme", null: false
-  t.string "value", null: false
+create_table :book_identifiers, force: :cascade, comment: "本のマスタの識別子（ISBN など）" do |t|
+  t.references :book, null: false, foreign_key: true, comment: "本"
+  t.string :scheme, null: false, comment: "識別子の種類（isbn13 など）"
+  t.string :value, null: false, comment: "識別子の値"
   t.timestamps
-  t.index [ "scheme", "value" ], unique: true
+  t.index [ :scheme, :value ], unique: true
 end
 
-add_check_constraint "book_identifiers", "scheme::text <> 'isbn13'::text OR value::text ~ '^97[89][0-9]{10}$'::text", name: "book_identifiers_isbn13_format"
+add_check_constraint :book_identifiers, "scheme::text <> 'isbn13'::text OR value::text ~ '^97[89][0-9]{10}$'::text", name: "book_identifiers_isbn13_format"

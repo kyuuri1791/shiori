@@ -1,10 +1,10 @@
-create_table "books", force: :cascade do |t|
-  t.string "title", null: false
-  t.string "authors", array: true, null: false, default: []
-  t.string "publisher"
-  t.string "published_on"
-  t.string "cover_url"
+create_table :books, force: :cascade, comment: "本のマスタ（openBD 由来）" do |t|
+  t.string :title, null: false, comment: "書名"
+  t.string :authors, array: true, null: false, default: [], comment: "著者"
+  t.string :publisher, comment: "出版社"
+  t.string :published_on, comment: "出版年月（YYYY-MM などの文字列）"
+  t.string :cover_url, comment: "書影の URL"
   t.timestamps
-  t.index [ "title" ], using: :gin, opclass: :gin_trgm_ops
-  t.index [ "title" ], name: "index_books_on_title_prefix", opclass: :text_pattern_ops
+  t.index [ :title ], using: :gin, opclass: :gin_trgm_ops
+  t.index [ :title ], name: "index_books_on_title_prefix", opclass: :text_pattern_ops
 end

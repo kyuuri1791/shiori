@@ -1,6 +1,6 @@
-create_table "readings", force: :cascade do |t|
-  t.references "user_shelf_item", null: false, index: false, foreign_key: true
-  t.date "finished_on", null: false
+create_table :readings, force: :cascade, comment: "読了の記録（再読は複数行）" do |t|
+  t.references :user_shelf_item, null: false, index: false, foreign_key: true, comment: "本棚の本"
+  t.date :finished_on, null: false, comment: "読了日"
   t.timestamps
-  t.index [ "user_shelf_item_id", "finished_on" ]
+  t.index [ :user_shelf_item_id, :finished_on ]
 end

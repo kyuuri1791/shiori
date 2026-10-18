@@ -1,15 +1,15 @@
-create_table "shelf_photo_scans", force: :cascade do |t|
-  t.references "user", null: false, index: false, foreign_key: true
-  t.integer "status", null: false, default: 1
-  t.binary "image"
-  t.string "content_type"
-  t.jsonb "books", null: false, default: []
-  t.string "error_message"
-  t.integer "input_tokens"
-  t.integer "output_tokens"
+create_table :shelf_photo_scans, force: :cascade, comment: "本棚の写真の読み取り（30日で削除）" do |t|
+  t.references :user, null: false, index: false, foreign_key: true, comment: "読み取ったユーザー"
+  t.integer :status, null: false, default: 1, comment: "1=処理中 2=成功 3=失敗"
+  t.binary :image, comment: "写真（読み取り後に消す）"
+  t.string :content_type, comment: "写真の形式"
+  t.jsonb :books, null: false, default: [], comment: "読み取った書名と著者"
+  t.string :error_message, comment: "失敗の理由"
+  t.integer :input_tokens, comment: "AI の入力トークン数"
+  t.integer :output_tokens, comment: "AI の出力トークン数"
   t.timestamps
-  t.index [ "user_id", "created_at" ]
-  t.index [ "created_at" ]
+  t.index [ :user_id, :created_at ]
+  t.index [ :created_at ]
 end
 
-add_check_constraint "shelf_photo_scans", "status = ANY (ARRAY[1, 2, 3])", name: "shelf_photo_scans_status_range"
+add_check_constraint :shelf_photo_scans, "status = ANY (ARRAY[1, 2, 3])", name: "shelf_photo_scans_status_range"

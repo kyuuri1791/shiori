@@ -1,17 +1,17 @@
-create_table "ai_searches", force: :cascade do |t|
-  t.references "user", null: false, index: false, foreign_key: true
-  t.string "query", null: false
-  t.integer "status", null: false, default: 1
-  t.jsonb "interpretation"
-  t.string "interpreter_version"
-  t.bigint "book_ids", array: true, null: false, default: []
-  t.string "error_message"
-  t.integer "input_tokens"
-  t.integer "output_tokens"
+create_table :ai_searches, force: :cascade, comment: "AI 検索の記録（30日で削除）" do |t|
+  t.references :user, null: false, index: false, foreign_key: true, comment: "検索したユーザー"
+  t.string :query, null: false, comment: "入力した文"
+  t.integer :status, null: false, default: 1, comment: "1=処理中 2=成功 3=失敗"
+  t.jsonb :interpretation, comment: "AI が解釈した検索条件"
+  t.string :interpreter_version, comment: "解釈したときのプロンプトの版"
+  t.bigint :book_ids, array: true, null: false, default: [], comment: "見つかった本（books.id）"
+  t.string :error_message, comment: "失敗の理由"
+  t.integer :input_tokens, comment: "AI の入力トークン数"
+  t.integer :output_tokens, comment: "AI の出力トークン数"
   t.timestamps
-  t.index [ "user_id", "created_at" ]
-  t.index [ "query", "interpreter_version", "created_at" ]
-  t.index [ "created_at" ]
+  t.index [ :user_id, :created_at ]
+  t.index [ :query, :interpreter_version, :created_at ]
+  t.index [ :created_at ]
 end
 
-add_check_constraint "ai_searches", "status = ANY (ARRAY[1, 2, 3])", name: "ai_searches_status_range"
+add_check_constraint :ai_searches, "status = ANY (ARRAY[1, 2, 3])", name: "ai_searches_status_range"
