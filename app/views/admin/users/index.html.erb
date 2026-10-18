@@ -10,6 +10,9 @@
     <h1 class="pageHeader__title">
       <%= link_to admin_root_path, class: "pageHeader__home" do %>読書カード帳<span class="adminBadge">管理画面</span><% end %>
     </h1>
+    <div class="pageHeader__tally">
+      <%= link_to "ジョブの実行状況", mission_control_jobs_path, class: "button button--link" %>
+    </div>
   </header>
 
   <section class="adminUsers" aria-labelledby="admin-users-title">

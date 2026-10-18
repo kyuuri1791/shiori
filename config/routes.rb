@@ -20,6 +20,7 @@ Rails.application.routes.draw do
     end
   end
 
+  mount MissionControl::Jobs::Engine, at: "/admin/jobs"
   namespace :admin do
     root "users#index"
     resources :users, only: :index do

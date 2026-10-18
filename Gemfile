@@ -62,3 +62,5 @@ gem "action_args"
 gem "solid_queue", "~> 1.7"
 
 gem "anthropic", "~> 1.80"
+
+gem "mission_control-jobs", "~> 1.3"

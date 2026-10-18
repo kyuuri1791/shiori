@@ -37,7 +37,7 @@ module Authenticatable
     end
 
     def request_approval
-      redirect_to root_path
+      redirect_to main_app.root_path
     end
 
     def resume_session
@@ -68,7 +68,7 @@ module Authenticatable
 
     def request_authentication
       session[:return_to_after_authenticating] = request.url if request.request_method.in?(%w[GET HEAD])
-      redirect_to new_session_path
+      redirect_to main_app.new_session_path
     end
 
     def start_new_session_for(user)

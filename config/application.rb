@@ -32,6 +32,10 @@ module DokushoCard
     config.i18n.fallbacks = [ :en ]
     config.time_zone = "Tokyo"
 
+    config.mission_control.jobs.base_controller_class = "Admin::ApplicationController"
+    config.mission_control.jobs.http_basic_auth_enabled = false
+    config.mission_control.jobs.back_to_main_app_path = "/admin"
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files
