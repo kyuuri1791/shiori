@@ -1,12 +1,12 @@
 <div class="page">
   <%= render "bulk_imports/header" %>
-  <section class="bulkImport" aria-labelledby="bulk-import-title">
-    <h2 class="bulkImport__title" id="bulk-import-title"><%= bulk_import_title %></h2>
+  <section class="grid gap-3.5" aria-labelledby="bulk-import-title">
+    <h2 class="m-0 font-display text-[22px]" id="bulk-import-title"><%= bulk_import_title %></h2>
     <%= render "bulk_imports/steps", current: :done %>
-    <p class="bulkImport__lead"><%= @result["count"] %>冊を「<%= UserShelfItem.status.find_value(@result["status"])&.text %>」で登録しました。</p>
-    <div class="bulkImport__actions">
-      <%= link_to "続けて登録する", url_for(action: :new), class: "button" %>
-      <%= link_to "本棚へ戻る", root_path, class: "button button--primary" %>
+    <p class="bulk-lead"><%= @result["count"] %>冊を「<%= UserShelfItem.status.find_value(@result["status"])&.text %>」で登録しました。</p>
+    <div class="bulk-actions">
+      <%= link_to "続けて登録する", url_for(action: :new), class: "btn" %>
+      <%= link_to "本棚へ戻る", root_path, class: "btn-primary" %>
     </div>
   </section>
 </div>

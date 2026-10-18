@@ -6,7 +6,7 @@ import useShelf from "./useShelf"
 import UserShelfItemDetail from "./UserShelfItemDetail"
 import type { AddResult, UserShelfItem, UserShelfItemAttributes, BookshelfPage, Book, Filters, ParsedLine, ShelfPage, Status, ToastState } from "./types"
 import AddBar from "./AddBar"
-import UserShelfItemList from "./UserShelfItemList"
+import UserShelfItemList, { EMPTY_CLASS, EMPTY_TITLE_CLASS, LIST_CLASS } from "./UserShelfItemList"
 import BulkImportMenu from "./BulkImportMenu"
 import { GUEST_SAMPLE_USER_SHELF_ITEM } from "./guestSample"
 import Drawer from "./Drawer"
@@ -270,32 +270,32 @@ export default function App({ initial }: { initial: BookshelfPage }) {
   return (
     <>
       <div className="page">
-        <header className="pageHeader">
-          <h1 className="pageHeader__title"><a className="pageHeader__home" href="/">読書カード帳</a></h1>
-          <div className="pageHeader__tally">
+        <header className="page-header">
+          <h1 className="page-title"><a className="text-inherit no-underline" href="/">読書カード帳</a></h1>
+          <div className="page-nav">
             {viewer.mode !== "guest" && (
               <>
-                <span>本棚 <b className="pageHeader__count">{facets.counts.all}</b> 冊</span>
+                <span>本棚 <b className="font-mono text-[15px] font-medium text-ink tabular-nums">{facets.counts.all}</b> 冊</span>
               </>
             )}
-            {canUseAi && <button className="button button--link" type="button" onClick={() => setImporting(true)}>まとめて登録</button>}
-            <a className="button button--link" href="/users">みんなの本棚</a>
-            {viewer.mode === "readonly" && viewer.signed_in && <a className="button button--link" href="/">自分の本棚</a>}
+            {canUseAi && <button className="btn-link" type="button" onClick={() => setImporting(true)}>まとめて登録</button>}
+            <a className="btn-link" href="/users">みんなの本棚</a>
+            {viewer.mode === "readonly" && viewer.signed_in && <a className="btn-link" href="/">自分の本棚</a>}
             {viewer.signed_in ? (
-              <form className="pageHeader__logout" method="post" action="/session">
+              <form className="inline" method="post" action="/session">
                 <input type="hidden" name="_method" value="delete" />
                 <input type="hidden" name="authenticity_token" value={csrfToken()} />
-                <button className="button button--link" type="submit">ログアウト</button>
+                <button className="btn-link" type="submit">ログアウト</button>
               </form>
             ) : (
               <>
-                <a className="button button--link" href="/registration/new">ユーザー登録</a>
-                <a className="button button--link" href="/session/new">ログイン</a>
+                <a className="btn-link" href="/registration/new">ユーザー登録</a>
+                <a className="btn-link" href="/session/new">ログイン</a>
               </>
             )}
           </div>
         </header>
-        {viewer.mode === "readonly" && viewer.is_owner && <div className="banner banner--info">あなたの本棚の公開ページです。ログインしていない人にも、このように見えます。</div>}
+        {viewer.mode === "readonly" && viewer.is_owner && <div className="banner-info">あなたの本棚の公開ページです。ログインしていない人にも、このように見えます。</div>}
         {error && <div className="banner" role="alert">{error}</div>}
 
         <AddBar
@@ -312,8 +312,8 @@ export default function App({ initial }: { initial: BookshelfPage }) {
         />
 
         {viewer.mode === "guest" ? (
-          <section className="shelf" aria-label="本棚">
-            <p className="shelf__sampleNote">見本の本棚です。本をクリックすると、読書カード（感想・メモ・読了日）を開けます。</p>
+          <section className="grid gap-3" aria-label="本棚">
+            <p className="m-0 text-[13px] text-muted">見本の本棚です。本をクリックすると、読書カード（感想・メモ・読了日）を開けます。</p>
             <UserShelfItemList
               readOnly
               userShelfItems={[GUEST_SAMPLE_USER_SHELF_ITEM]}
@@ -324,16 +324,16 @@ export default function App({ initial }: { initial: BookshelfPage }) {
               onCycle={() => {}}
               onSeed={() => {}}
             />
-            <div className="userShelfItemList">
-              <div className="userShelfItemList__empty">
-                <h2 className="userShelfItemList__emptyTitle">ログインすると、自分の本棚を作れます</h2>
+            <div className={LIST_CLASS}>
+              <div className={EMPTY_CLASS}>
+                <h2 className={EMPTY_TITLE_CLASS}>ログインすると、自分の本棚を作れます</h2>
                 <div>上の欄で、本のマスタ（約194万冊）からタイトルで本を探せます。</div>
-                <a className="button button--primary" href="/session/new">ログイン</a>
+                <a className="btn-primary" href="/session/new">ログイン</a>
               </div>
             </div>
           </section>
         ) : (
-          <section className="shelf" aria-label="本棚" ref={shelfTop}>
+          <section className="grid gap-3" aria-label="本棚" ref={shelfTop}>
             <ShelfControls facets={facets} filters={filters} query={query} onQuery={setQuery} onChange={changeFilters} showUnmatched={canEdit} />
             <Pager page={page} onPage={goToPage} />
             <UserShelfItemList

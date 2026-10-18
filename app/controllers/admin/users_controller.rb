@@ -4,7 +4,8 @@ module Admin
 
     PER_PAGE = 50
 
-    def index(approval: nil)
+    def index
+      approval = params[:approval]
       users = User.order(created_at: :desc, id: :desc)
       users = users.where(approved_at: nil) if approval == "pending"
       pagy, @users = pagy(:offset, users, limit: PER_PAGE)

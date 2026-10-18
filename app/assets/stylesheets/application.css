@@ -1,0 +1,175 @@
+@import "tailwindcss";
+
+@source "../../views";
+@source "../../helpers";
+@source "../../client";
+
+@theme {
+  --color-paper: #eef1f4;
+  --color-card: #fbfcfd;
+  --color-ink: #1d2733;
+  --color-muted: #5d6b7a;
+  --color-line: #d3dae2;
+  --color-accent: #2f4d8a;
+  --color-accent-soft: #dfe6f3;
+  --color-stamp: #b2452e;
+  --color-want: #8a6a12;
+  --color-want-bg: #f4ecd2;
+  --color-reading: #1f6d5a;
+  --color-reading-bg: #d6ece5;
+  --color-read: #2f4d8a;
+  --color-read-bg: #dfe6f3;
+  --font-display: "Zen Old Mincho", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --font-sans: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --shadow-float: 0 10px 30px rgba(29, 39, 51, .14);
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  body {
+    @apply bg-paper text-ink font-sans text-[15px] leading-relaxed;
+  }
+
+  button:not(:disabled) {
+    cursor: pointer;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+
+  dialog::backdrop {
+    background: rgba(10, 15, 20, .45);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+}
+
+@utility btn {
+  @apply inline-block rounded-lg border border-line bg-card px-3.5 py-2 text-sm whitespace-nowrap text-ink no-underline hover:border-accent disabled:cursor-default disabled:opacity-60;
+}
+
+@utility btn-primary {
+  @apply btn border-accent bg-accent font-medium text-card;
+}
+
+@utility btn-small {
+  @apply px-2.5 py-1 text-[13px];
+}
+
+@utility btn-link {
+  @apply border-0 bg-transparent p-0 text-[13px] whitespace-nowrap text-muted underline disabled:cursor-default disabled:opacity-60;
+}
+
+@utility link {
+  @apply text-accent underline underline-offset-2;
+}
+
+@utility input-box {
+  @apply w-full min-w-0 rounded-lg border border-line bg-paper px-3 py-2;
+}
+
+@utility spinner {
+  @apply inline-block size-3.5 flex-none animate-spin rounded-full border-2 border-accent-soft border-t-accent align-[-2px];
+}
+
+@utility pager-btn {
+  @apply inline-block min-w-[34px] rounded-md border border-line bg-card px-2 py-1 text-center font-mono text-[13px] text-inherit tabular-nums no-underline hover:border-accent disabled:cursor-default disabled:opacity-45 disabled:hover:border-line;
+}
+
+@utility chip {
+  @apply rounded-full border border-line bg-card px-2.5 py-0.5 text-xs text-muted;
+}
+
+@utility segmented {
+  @apply inline-flex overflow-hidden rounded-lg border border-line bg-paper;
+}
+
+@utility segmented-option {
+  @apply border-0 bg-transparent px-3 py-2.5 text-[13px] whitespace-nowrap text-muted disabled:cursor-default disabled:opacity-60;
+}
+
+@utility field-label {
+  @apply text-[11px] tracking-[.1em] text-muted;
+}
+
+@utility page {
+  @apply mx-auto grid max-w-[1040px] gap-5 pt-7 pb-30 pr-[max(16px,env(safe-area-inset-right,0px))] pl-[max(16px,env(safe-area-inset-left,0px))];
+}
+
+@utility page-header {
+  @apply flex flex-wrap items-baseline justify-between gap-x-5 gap-y-2;
+}
+
+@utility page-title {
+  @apply m-0 font-display text-[28px] tracking-[.06em] text-balance;
+}
+
+@utility page-nav {
+  @apply flex flex-wrap items-baseline gap-4 text-[13px] text-muted;
+}
+
+@utility banner {
+  @apply rounded-md border border-dashed border-stamp px-3 py-2 text-[13px] text-stamp;
+}
+
+@utility banner-info {
+  @apply banner border-accent text-accent;
+}
+
+@utility modal {
+  @apply m-auto w-[min(560px,calc(100%-32px))] rounded-xl border border-line bg-card p-5 text-ink shadow-float;
+}
+
+@utility modal-title {
+  @apply mt-0 mb-2 font-display text-lg;
+}
+
+@utility modal-actions {
+  @apply mt-3 flex flex-wrap justify-end gap-2;
+}
+
+@utility bulk-steps {
+  @apply m-0 flex list-none flex-wrap gap-1.5 p-0;
+  counter-reset: step;
+}
+
+@utility bulk-step {
+  @apply rounded-full border border-line bg-card px-2.5 py-1 text-[13px] text-muted before:content-[counter(step)_".\00a0"];
+  counter-increment: step;
+}
+
+@utility bulk-step-current {
+  @apply border-accent bg-accent text-card;
+}
+
+@utility bulk-panel {
+  @apply grid gap-3 rounded-[10px] border border-line bg-card px-4.5 py-4;
+}
+
+@utility bulk-lead {
+  @apply m-0 text-sm text-muted;
+}
+
+@utility bulk-actions {
+  @apply flex flex-wrap items-center justify-end gap-2;
+}
+
+@utility bulk-review {
+  @apply m-0 list-none rounded-lg border border-line p-0;
+}
+
+@utility bulk-review-item {
+  @apply flex items-start gap-2.5 border-b border-line px-3 py-2.5 last:border-b-0;
+}

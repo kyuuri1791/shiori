@@ -12,8 +12,8 @@ class UsersController < ApplicationController
     @page = pagy.data_hash(data_keys: %i[count page last previous next from to series])
   end
 
-  def show(id)
-    owner = User.find(id)
+  def show
+    owner = User.find(params[:id])
     @props = shelf_page_for(owner.user_shelf_items).merge(viewer: viewer_props(mode: "readonly", owner:))
   end
 end

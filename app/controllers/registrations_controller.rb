@@ -7,8 +7,8 @@ class RegistrationsController < ApplicationController
     @user = User.new
   end
 
-  def create(email_address: "", password: "", password_confirmation: "")
-    @user = User.new(email_address: email_address.to_s, password: password.to_s, password_confirmation: password_confirmation.to_s)
+  def create
+    @user = User.new(email_address: params[:email_address].to_s, password: params[:password].to_s, password_confirmation: params[:password_confirmation].to_s)
     if @user.save
       start_new_session_for(@user)
       redirect_to root_path

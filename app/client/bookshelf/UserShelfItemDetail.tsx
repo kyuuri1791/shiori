@@ -1,6 +1,8 @@
 import { useRef } from "react"
-import { STATUS, bookSummary, externalTargetOfUserShelfItem } from "./text"
+import StatusPill from "./StatusPill"
+import { bookSummary, externalTargetOfUserShelfItem } from "./text"
 import Cover from "./Cover"
+import { drawerClass, DRAWER_HEAD, DRAWER_BODY, DRAWER_PAIR, FIELD, FIELD_TEXT, BOOK_CARD, BOOK_CARD_UNMATCHED, BOOK_CARD_BODY, BOOK_CARD_ISBN, NOTE_LIST, NOTE_DATE, NOTE_TEXT, STARS } from "./drawerStyles"
 import ExternalLink from "./ExternalLink"
 import useCloseOnOutsideClick from "./useCloseOnOutsideClick"
 import type { UserShelfItem } from "./types"
@@ -15,72 +17,72 @@ export default function UserShelfItemDetail({ userShelfItem, onClose }: Props) {
   const shown = userShelfItem ?? last.current
   const ref = useCloseOnOutsideClick<HTMLElement>(!!userShelfItem, onClose)
   return (
-    <aside ref={ref} className={`drawer${userShelfItem ? " drawer--open" : ""}`} aria-label="本の詳細" inert={!userShelfItem}>
+    <aside ref={ref} className={drawerClass(!!userShelfItem)} aria-label="本の詳細" inert={!userShelfItem}>
       {shown && (
         <>
-          <div className="drawer__head">
+          <div className={DRAWER_HEAD}>
             <span>読書カード</span>
-            <button className="button button--small" type="button" onClick={onClose}>閉じる</button>
+            <button className="btn btn-small" type="button" onClick={onClose}>閉じる</button>
           </div>
-          <div className="drawer__body">
-            <h2 className="drawer__heading">{shown.title}</h2>
+          <div className={DRAWER_BODY}>
+            <h2 className="m-0 font-display text-xl font-bold wrap-anywhere">{shown.title}</h2>
             {shown.author && (
-              <div className="field">
-                <span className="field__label">著者</span>
-                <p className="field__text">{shown.author}</p>
+              <div className={FIELD}>
+                <span className="field-label">著者</span>
+                <p className={FIELD_TEXT}>{shown.author}</p>
               </div>
             )}
-            <div className={`bookCard${shown.book ? "" : " bookCard--unmatched"}`}>
+            <div className={shown.book ? BOOK_CARD : BOOK_CARD_UNMATCHED}>
               {shown.book && <Cover book={shown.book} title={shown.book.title} large />}
-              <div className="bookCard__body">
+              <div className={BOOK_CARD_BODY}>
                 {shown.book && (
                   <>
                     <strong>{shown.book.title}</strong>
                     <span>{bookSummary(shown.book)}</span>
-                    {shown.book.isbn13 && <span className="bookCard__isbn">ISBN {shown.book.isbn13}</span>}
+                    {shown.book.isbn13 && <span className={BOOK_CARD_ISBN}>ISBN {shown.book.isbn13}</span>}
                   </>
                 )}
                 <ExternalLink target={externalTargetOfUserShelfItem(shown)} />
               </div>
             </div>
-            <div className="drawer__pair">
-              <div className="field">
-                <span className="field__label">状態</span>
-                <span><span className={`statusPill statusPill--${shown.status}`}>{STATUS[shown.status]}</span></span>
+            <div className={DRAWER_PAIR}>
+              <div className={FIELD}>
+                <span className="field-label">状態</span>
+                <span><StatusPill status={shown.status} /></span>
               </div>
               {shown.rating > 0 && (
-                <div className="field">
-                  <span className="field__label">評価</span>
-                  <span className="userShelfItemRow__stars" aria-label={`評価${shown.rating}`}>{stars(shown.rating)}</span>
+                <div className={FIELD}>
+                  <span className="field-label">評価</span>
+                  <span className={STARS} aria-label={`評価${shown.rating}`}>{stars(shown.rating)}</span>
                 </div>
               )}
             </div>
             {shown.reading_dates.length > 0 && (
-              <div className="field">
-                <span className="field__label">読了日</span>
-                <p className="field__text">{shown.reading_dates.map((d, i) => `${i + 1}回目 ${d.replaceAll("-", ".")}`).join(" / ")}</p>
+              <div className={FIELD}>
+                <span className="field-label">読了日</span>
+                <p className={FIELD_TEXT}>{shown.reading_dates.map((d, i) => `${i + 1}回目 ${d.replaceAll("-", ".")}`).join(" / ")}</p>
               </div>
             )}
             {shown.tags.length > 0 && (
-              <div className="field">
-                <span className="field__label">タグ</span>
-                <p className="field__text">{shown.tags.map(t => `#${t}`).join(" ")}</p>
+              <div className={FIELD}>
+                <span className="field-label">タグ</span>
+                <p className={FIELD_TEXT}>{shown.tags.map(t => `#${t}`).join(" ")}</p>
               </div>
             )}
             {shown.review && (
-              <div className="field">
-                <span className="field__label">感想</span>
-                <p className="field__text">{shown.review}</p>
+              <div className={FIELD}>
+                <span className="field-label">感想</span>
+                <p className={FIELD_TEXT}>{shown.review}</p>
               </div>
             )}
             {shown.notes.length > 0 && (
-              <div className="field">
-                <span className="field__label">読みながらメモ</span>
-                <ul className="noteList">
+              <div className={FIELD}>
+                <span className="field-label">読みながらメモ</span>
+                <ul className={NOTE_LIST}>
                   {[...shown.notes].reverse().map(n => (
-                    <li className="noteList__item noteList__item--static" key={n.t}>
-                      <span className="noteList__date">{new Date(n.t).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })}</span>
-                      <p className="noteList__text">{n.text}</p>
+                    <li className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2.5 text-sm" key={n.t}>
+                      <span className={NOTE_DATE}>{new Date(n.t).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })}</span>
+                      <p className={NOTE_TEXT}>{n.text}</p>
                     </li>
                   ))}
                 </ul>

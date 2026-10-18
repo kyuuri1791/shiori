@@ -57,7 +57,6 @@ gem "discard", "~> 2.0"
 gem "enumerize", "~> 3.0"
 
 gem "pagy", "~> 43.8"
-gem "action_args"
 
 gem "solid_queue", "~> 1.7"
 

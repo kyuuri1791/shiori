@@ -1,9 +1,10 @@
 import { globSync } from "node:fs"
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
+import tailwindcss from "@tailwindcss/vite"
 
 export default defineConfig(({ command }) => ({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   base: command === "build" ? "/vite/" : "/",
   server: {
     host: "0.0.0.0",
@@ -17,7 +18,7 @@ export default defineConfig(({ command }) => ({
     emptyOutDir: true,
     manifest: true,
     rollupOptions: {
-      input: [...globSync("app/client/entrypoints/*.{ts,tsx}"), ...globSync("app/assets/stylesheets/**/application.scss")],
+      input: [...globSync("app/client/entrypoints/*.{ts,tsx}"), "app/assets/stylesheets/application.css"],
     },
   },
 }))

@@ -3,6 +3,7 @@ import { lookupIsbn } from "./api"
 import { STATUS, STATUS_KEYS, authorLine, bookSummary, externalTargetOfUserShelfItem, looksLikeIsbn, today } from "./text"
 import ExternalLink from "./ExternalLink"
 import Cover from "./Cover"
+import { drawerClass, DRAWER_HEAD, DRAWER_BODY, DRAWER_PAIR, FIELD, BOOK_CARD, BOOK_CARD_UNMATCHED, BOOK_CARD_BODY, BOOK_CARD_ISBN, NOTE_LIST, NOTE_DATE, NOTE_TEXT } from "./drawerStyles"
 import BookSuggest, { IDLE_SEARCH, useBookSearch, type BookSearchState } from "./BookSuggest"
 import useCloseOnOutsideClick from "./useCloseOnOutsideClick"
 import type { UserShelfItem, Book, SaveUserShelfItem, Status, UpdateUserShelfItem } from "./types"
@@ -34,7 +35,7 @@ export default function Drawer({ userShelfItem, ...props }: Handlers & { userShe
   const shown = userShelfItem || last.current
   const ref = useCloseOnOutsideClick<HTMLElement>(!!userShelfItem, props.onClose)
   return (
-    <aside ref={ref} className={`drawer${userShelfItem ? " drawer--open" : ""}`} aria-label="本の詳細" inert={!userShelfItem}>
+    <aside ref={ref} className={drawerClass(!!userShelfItem)} aria-label="本の詳細" inert={!userShelfItem}>
       {shown && <DrawerBody key={shown.id} userShelfItem={shown} active={!!userShelfItem} {...props} />}
     </aside>
   )
@@ -65,15 +66,15 @@ function BookPanel({ userShelfItem, onUpdate }: { userShelfItem: UserShelfItem; 
 
   if (book) {
     return (
-      <div className="bookCard">
+      <div className={BOOK_CARD}>
         <Cover book={book} title={book.title} large />
-        <div className="bookCard__body">
+        <div className={BOOK_CARD_BODY}>
           <strong>{book.title}</strong>
           <span>{bookSummary(book)}</span>
-          {book.isbn13 && <span className="bookCard__isbn">ISBN {book.isbn13}</span>}
+          {book.isbn13 && <span className={BOOK_CARD_ISBN}>ISBN {book.isbn13}</span>}
           <ExternalLink target={externalTargetOfUserShelfItem(userShelfItem)} />
-          <div className="bookCard__actions">
-            <button className="button button--small" type="button" onClick={() => onUpdate(userShelfItem.id, { book_id: null }, "本のマスタとの紐付けを外しました")}>紐付けを外す</button>
+          <div className="flex flex-wrap gap-2">
+            <button className="btn btn-small" type="button" onClick={() => onUpdate(userShelfItem.id, { book_id: null }, "本のマスタとの紐付けを外しました")}>紐付けを外す</button>
           </div>
         </div>
       </div>
@@ -81,33 +82,33 @@ function BookPanel({ userShelfItem, onUpdate }: { userShelfItem: UserShelfItem; 
   }
 
   return (
-    <div className="bookCard bookCard--unmatched">
-      <div className="bookCard__body">
-        <span className="bookCard__note">本のマスタに紐付いていません。紐付けると書誌情報と書影が付き、同じ本の重複に気づけるようになります。</span>
-        {userShelfItem.isbn13 && <span className="bookCard__isbn">読み取ったISBN {userShelfItem.isbn13}（本のマスタに未登録）</span>}
+    <div className={BOOK_CARD_UNMATCHED}>
+      <div className={BOOK_CARD_BODY}>
+        <span className="text-muted">本のマスタに紐付いていません。紐付けると書誌情報と書影が付き、同じ本の重複に気づけるようになります。</span>
+        {userShelfItem.isbn13 && <span className={BOOK_CARD_ISBN}>読み取ったISBN {userShelfItem.isbn13}（本のマスタに未登録）</span>}
         <ExternalLink target={externalTargetOfUserShelfItem(userShelfItem)} />
         {!searching && (
-          <div className="bookCard__actions">
-            <button className="button button--small" type="button" onClick={() => setSearching(true)}>マスタから探す</button>
+          <div className="flex flex-wrap gap-2">
+            <button className="btn btn-small" type="button" onClick={() => setSearching(true)}>マスタから探す</button>
           </div>
         )}
         {searching && (
-          <div className="bookCard__search">
+          <div className="grid gap-2">
             <input
-              type="text" className="field__input" aria-label="タイトルかISBNで探す" value={query} autoFocus
+              type="text" className="input-box" aria-label="タイトルかISBNで探す" value={query} autoFocus
               onChange={e => { setQuery(e.target.value); setIsbnResult(null) }}
               onKeyDown={e => {
                 if (e.key === "Enter" && !e.nativeEvent.isComposing && isbnMode) { e.preventDefault(); findByIsbn() }
               }}
             />
-            {isbnMode && !isbnResult && <span className="bookCard__note">ISBNで探すにはEnterを押してください</span>}
+            {isbnMode && !isbnResult && <span className="text-muted">ISBNで探すにはEnterを押してください</span>}
             <BookSuggest
               search={isbnMode ? (isbnResult ?? IDLE_SEARCH) : search}
               emptyText="候補が見つかりません。タイトルを短くするか、ISBNで探してください"
               onPick={link}
             />
-            <div className="bookCard__actions">
-              <button className="button button--small" type="button" onClick={() => setSearching(false)}>やめる</button>
+            <div className="flex flex-wrap gap-2">
+              <button className="btn btn-small" type="button" onClick={() => setSearching(false)}>やめる</button>
             </div>
           </div>
         )}
@@ -126,24 +127,24 @@ function ReadingList({ userShelfItem, onUpdate }: { userShelfItem: UserShelfItem
   }
 
   return (
-    <div className="field">
-      <span className="field__label">読了日</span>
+    <div className={FIELD}>
+      <span className="field-label">読了日</span>
       {dates.length > 0 && (
-        <ul className="readingList">
+        <ul className="grid gap-1.5">
           {dates.map((date, i) => (
-            <li key={`${i}-${date}`} className="readingList__item">
-              <span className="readingList__nth">{i + 1}回目</span>
+            <li key={`${i}-${date}`} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5">
+              <span className="min-w-[3.5em] font-mono text-xs text-muted">{i + 1}回目</span>
               <input
-                type="date" className="field__input" aria-label={`${i + 1}回目の読了日`} value={date}
+                type="date" className="input-box" aria-label={`${i + 1}回目の読了日`} value={date}
                 onChange={e => e.target.value && save(dates.map((d, j) => (j === i ? e.target.value : d)), "読了日を変更しました")}
               />
-              <button className="readingList__delete" type="button" onClick={() => save(dates.filter((_, j) => j !== i), "読了日を消しました")}>消す</button>
+              <button className="border-0 bg-transparent text-xs text-muted" type="button" onClick={() => save(dates.filter((_, j) => j !== i), "読了日を消しました")}>消す</button>
             </li>
           ))}
         </ul>
       )}
       <div>
-        <button className="button button--small" type="button" onClick={() => save([...dates, today()], dates.length ? "再読を記録しました" : "読了日を記録しました")}>
+        <button className="btn btn-small" type="button" onClick={() => save([...dates, today()], dates.length ? "再読を記録しました" : "読了日を記録しました")}>
           {dates.length ? "もう一度読んだ（今日）" : "読み終えた（今日）"}
         </button>
       </div>
@@ -181,45 +182,45 @@ function DrawerBody({ userShelfItem, active, onClose, onUpdate, onSave, onStatus
 
   return (
     <>
-      <div className="drawer__head">
+      <div className={DRAWER_HEAD}>
         <span>読書カード</span>
-        <button className="button button--small" type="button" onClick={onClose}>閉じる</button>
+        <button className="btn btn-small" type="button" onClick={onClose}>閉じる</button>
       </div>
-      <div className="drawer__body">
+      <div className={DRAWER_BODY}>
         <input
-          className="drawer__title" type="text" aria-label="タイトル" value={title} {...titleBind}
+          className="w-full border-0 border-b border-transparent bg-transparent py-0.5 font-display text-xl font-bold outline-none hover:border-line focus:border-line" type="text" aria-label="タイトル" value={title} {...titleBind}
           onChange={e => setTitle(e.target.value)}
           onBlur={e => commitText("title", e.target.value.trim(), "タイトルを変更しました")}
         />
-        <div className="field">
-          <label className="field__label" htmlFor="drawerAuthor">著者</label>
+        <div className={FIELD}>
+          <label className="field-label" htmlFor="drawerAuthor">著者</label>
           <input
-            type="text" id="drawerAuthor" className="field__input" value={author} {...authorBind}
+            type="text" id="drawerAuthor" className="input-box" value={author} {...authorBind}
             onChange={e => setAuthor(e.target.value)}
             onBlur={e => commitText("author", e.target.value.trim(), "著者を変更しました")}
           />
         </div>
         <BookPanel userShelfItem={userShelfItem} onUpdate={onUpdate} />
-        <div className="drawer__pair">
-          <div className="field">
-            <span className="field__label">状態</span>
+        <div className={DRAWER_PAIR}>
+          <div className={FIELD}>
+            <span className="field-label">状態</span>
             <div className="segmented" role="group" aria-label="状態">
               {STATUS_KEYS.map(key => (
                 <button
                   key={key} type="button" aria-pressed={userShelfItem.status === key}
-                  className={`segmented__option${userShelfItem.status === key ? " segmented__option--active" : ""}`}
+                  className={`segmented-option ${userShelfItem.status === key ? "bg-accent text-card" : ""}`}
                   onClick={() => onStatus(userShelfItem.id, key)}
                 >{STATUS[key]}</button>
               ))}
             </div>
           </div>
-          <div className="field">
-            <span className="field__label">評価</span>
-            <div className="rating">
+          <div className={FIELD}>
+            <span className="field-label">評価</span>
+            <div className="flex gap-0.5">
               {[1, 2, 3, 4, 5].map(n => (
                 <button
                   key={n} type="button" aria-label={`${n}点`}
-                  className={`rating__star${n <= userShelfItem.rating ? " rating__star--on" : ""}`}
+                  className={`border-0 bg-transparent p-0.5 text-[22px] leading-none ${n <= userShelfItem.rating ? "text-stamp" : "text-line"}`}
                   onClick={() => onUpdate(userShelfItem.id, { rating: userShelfItem.rating === n ? 0 : n }, "評価を変更しました")}
                 >★</button>
               ))}
@@ -227,10 +228,10 @@ function DrawerBody({ userShelfItem, active, onClose, onUpdate, onSave, onStatus
           </div>
         </div>
         <ReadingList userShelfItem={userShelfItem} onUpdate={onUpdate} />
-        <div className="field">
-          <label className="field__label" htmlFor="drawerTags">タグ（スペース区切り）</label>
+        <div className={FIELD}>
+          <label className="field-label" htmlFor="drawerTags">タグ（スペース区切り）</label>
           <input
-            type="text" id="drawerTags" className="field__input" placeholder="小説 SF 再読したい" value={tags} {...tagsBind}
+            type="text" id="drawerTags" className="input-box" placeholder="小説 SF 再読したい" value={tags} {...tagsBind}
             onChange={e => setTags(e.target.value)}
             onBlur={e => {
               const next = [...new Set(e.target.value.split(/[\s,、]+/).map(t => t.replace(/^[#＃]/, "")).filter(Boolean))]
@@ -238,10 +239,10 @@ function DrawerBody({ userShelfItem, active, onClose, onUpdate, onSave, onStatus
             }}
           />
         </div>
-        <div className="field">
-          <label className="field__label" htmlFor="drawerReview">感想</label>
+        <div className={FIELD}>
+          <label className="field-label" htmlFor="drawerReview">感想</label>
           <textarea
-            id="drawerReview" className="field__textarea" value={review} {...reviewBind}
+            id="drawerReview" className="input-box min-h-40 resize-y leading-[1.75]" value={review} {...reviewBind}
             placeholder="文字数の制限はありません。書いたそばから自動で保存されます。"
             onChange={e => {
               setReview(e.target.value)
@@ -252,12 +253,12 @@ function DrawerBody({ userShelfItem, active, onClose, onUpdate, onSave, onStatus
             }}
             onBlur={flushReview}
           />
-          <div className="field__meta"><span>{review.length}文字</span><span>{saveState}</span></div>
+          <div className="flex justify-between text-xs text-muted"><span>{review.length}文字</span><span>{saveState}</span></div>
         </div>
-        <div className="field">
-          <label className="field__label" htmlFor="drawerNote">読みながらメモ</label>
+        <div className={FIELD}>
+          <label className="field-label" htmlFor="drawerNote">読みながらメモ</label>
           <input
-            type="text" id="drawerNote" className="field__input" placeholder="気になった一文、ページ数など。Enterで追加" value={note}
+            type="text" id="drawerNote" className="input-box" placeholder="気になった一文、ページ数など。Enterで追加" value={note}
             onChange={e => setNote(e.target.value)}
             onKeyDown={e => {
               if (e.key !== "Enter" || e.nativeEvent.isComposing) return
@@ -267,20 +268,20 @@ function DrawerBody({ userShelfItem, active, onClose, onUpdate, onSave, onStatus
               onSave(userShelfItem.id, { notes: [...userShelfItem.notes, { t: Date.now(), text }] })
             }}
           />
-          <ul className="noteList">
+          <ul className={NOTE_LIST}>
             {[...userShelfItem.notes].reverse().map(n => (
-              <li className="noteList__item" key={n.t}>
-                <span className="noteList__date">{new Date(n.t).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })}</span>
-                <p className="noteList__text">{n.text}</p>
-                <button className="noteList__delete" type="button" onClick={() => onUpdate(userShelfItem.id, { notes: userShelfItem.notes.filter(x => x.t !== n.t) }, "メモを消しました")}>消す</button>
+              <li className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-baseline gap-2.5 text-sm" key={n.t}>
+                <span className={NOTE_DATE}>{new Date(n.t).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })}</span>
+                <p className={NOTE_TEXT}>{n.text}</p>
+                <button className="border-0 bg-transparent text-xs text-muted" type="button" onClick={() => onUpdate(userShelfItem.id, { notes: userShelfItem.notes.filter(x => x.t !== n.t) }, "メモを消しました")}>消す</button>
               </li>
             ))}
           </ul>
         </div>
       </div>
-      <div className="drawer__foot">
-        <button className="button button--danger" type="button" onClick={() => onDelete(userShelfItem)}>この本を削除</button>
-        <span className="drawer__created">登録 {new Date(userShelfItem.created_at).toLocaleDateString("ja-JP")}</span>
+      <div className="flex items-center justify-between gap-2 border-t border-line px-4.5 py-3">
+        <button className="btn text-stamp" type="button" onClick={() => onDelete(userShelfItem)}>この本を削除</button>
+        <span className="font-mono text-xs text-muted">登録 {new Date(userShelfItem.created_at).toLocaleDateString("ja-JP")}</span>
       </div>
     </>
   )

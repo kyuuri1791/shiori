@@ -5,8 +5,8 @@ class SessionsController < ApplicationController
   def new
   end
 
-  def create(email_address: "", password: "")
-    if user = User.authenticate_by(email_address: email_address.to_s, password: password.to_s)
+  def create
+    if user = User.authenticate_by(email_address: params[:email_address].to_s, password: params[:password].to_s)
       return_to = start_new_session_for(user)
       redirect_to return_to || root_url
     else

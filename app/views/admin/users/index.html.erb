@@ -1,57 +1,56 @@
 <% content_for :title, "ユーザー管理 | 管理画面 | 読書カード帳" %>
 <% content_for :head do %>
   <meta name="robots" content="noindex, nofollow">
-  <%= vite_stylesheet_tag "admin/users/index/application.scss" %>
   <%= vite_entry_tags "entrypoints/admin.ts" %>
 <% end %>
 
 <div class="page">
-  <header class="pageHeader">
-    <h1 class="pageHeader__title">
-      <%= link_to admin_root_path, class: "pageHeader__home" do %>読書カード帳<span class="adminBadge">管理画面</span><% end %>
+  <header class="page-header">
+    <h1 class="page-title">
+      <%= link_to admin_root_path, class: "text-inherit no-underline" do %>読書カード帳<span class="ml-2.5 rounded bg-stamp px-2 py-0.5 align-middle font-sans text-[13px] font-bold tracking-[.04em] text-card">管理画面</span><% end %>
     </h1>
-    <div class="pageHeader__tally">
-      <%= link_to "ジョブの実行状況", mission_control_jobs_path, class: "button button--link" %>
+    <div class="page-nav">
+      <%= link_to "ジョブの実行状況", mission_control_jobs_path, class: "btn-link" %>
     </div>
   </header>
 
-  <section class="adminUsers" aria-labelledby="admin-users-title">
-    <div class="adminUsers__head">
-      <h2 class="adminUsers__title" id="admin-users-title">ユーザー管理</h2>
-      <nav class="adminUsers__filters" aria-label="絞り込み">
-        <%= link_to "すべて", admin_users_path, class: "adminUsers__filter#{" adminUsers__filter--current" unless @approval == "pending"}", aria: { current: (@approval == "pending" ? nil : "page") } %>
-        <%= link_to "AI 未承認", admin_users_path(approval: "pending"), class: "adminUsers__filter#{" adminUsers__filter--current" if @approval == "pending"}", aria: { current: (@approval == "pending" ? "page" : nil) } %>
+  <section class="grid gap-3" aria-labelledby="admin-users-title">
+    <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
+      <h2 class="m-0 font-display text-xl" id="admin-users-title">ユーザー管理</h2>
+      <nav class="flex gap-3 text-sm" aria-label="絞り込み">
+        <%= link_to "すべて", admin_users_path, class: @approval == "pending" ? "text-muted no-underline" : "font-bold text-ink no-underline", aria: { current: (@approval == "pending" ? nil : "page") } %>
+        <%= link_to "AI 未承認", admin_users_path(approval: "pending"), class: @approval == "pending" ? "font-bold text-ink no-underline" : "text-muted no-underline", aria: { current: (@approval == "pending" ? "page" : nil) } %>
       </nav>
     </div>
-    <%= tag.div(flash[:notice], class: "banner banner--info", role: "status") if flash[:notice] %>
+    <%= tag.div(flash[:notice], class: "banner-info", role: "status") if flash[:notice] %>
 
     <% if @users.empty? %>
-      <p class="adminUsers__empty">該当するユーザーはいません。</p>
+      <p class="m-0 text-muted">該当するユーザーはいません。</p>
     <% else %>
-      <table class="adminUsers__table">
+      <table class="w-full border-collapse overflow-hidden rounded-[10px] border border-line bg-card text-sm">
         <thead>
-          <tr>
-            <th scope="col">ID</th>
-            <th scope="col">メールアドレス</th>
-            <th scope="col">登録日</th>
-            <th scope="col">AI の機能</th>
+          <tr class="text-left text-xs text-muted">
+            <th scope="col" class="px-3 py-2.5 font-medium">ID</th>
+            <th scope="col" class="px-3 py-2.5 font-medium">メールアドレス</th>
+            <th scope="col" class="px-3 py-2.5 font-medium max-sm:hidden">登録日</th>
+            <th scope="col" class="px-3 py-2.5 font-medium">AI の機能</th>
           </tr>
         </thead>
         <tbody>
           <% @users.each do |user| %>
-            <tr>
-              <td class="adminUsers__id"><%= user.id %></td>
-              <td class="adminUsers__email">
+            <tr class="border-t border-line">
+              <td class="px-3 py-2.5 font-mono whitespace-nowrap"><%= user.id %></td>
+              <td class="px-3 py-2.5 wrap-anywhere">
                 <%= user.email_address %>
-                <% if user.admin? %><span class="adminUsers__badge">管理者</span><% end %>
+                <% if user.admin? %><span class="ml-2 text-xs text-accent">管理者</span><% end %>
               </td>
-              <td class="adminUsers__date"><%= user.created_at.to_date.strftime("%Y.%m.%d") %></td>
-              <td class="adminUsers__approval">
+              <td class="px-3 py-2.5 font-mono whitespace-nowrap max-sm:hidden"><%= user.created_at.to_date.strftime("%Y.%m.%d") %></td>
+              <td class="px-3 py-2.5 whitespace-nowrap">
                 <% if user.approved? %>
-                  <span class="adminUsers__approvedAt"><%= user.approved_at.to_date.strftime("%Y.%m.%d") %> に承認</span>
-                  <%= button_to "取り消す", admin_user_approval_path(user), method: :delete, class: "button button--link", form_class: "adminUsers__action" %>
+                  <span class="mr-2 text-muted"><%= user.approved_at.to_date.strftime("%Y.%m.%d") %> に承認</span>
+                  <%= button_to "取り消す", admin_user_approval_path(user), method: :delete, class: "btn-link", form_class: "inline" %>
                 <% else %>
-                  <%= button_to "承認する", admin_user_approval_path(user), class: "button button--primary", form_class: "adminUsers__action", form: { data: { confirm: "#{user.email_address} を承認します。よろしいですか？" } } %>
+                  <%= button_to "承認する", admin_user_approval_path(user), class: "btn-primary", form_class: "inline", form: { data: { confirm: "#{user.email_address} を承認します。よろしいですか？" } } %>
                 <% end %>
               </td>
             </tr>
@@ -61,30 +60,5 @@
     <% end %>
   </section>
 
-  <% if @page[:last] > 1 %>
-    <nav class="pager" aria-label="ページ">
-      <% if @page[:previous] %>
-        <%= link_to "前へ", admin_users_path(approval: @approval, page: @page[:previous]), class: "pager__step" %>
-      <% else %>
-        <span class="pager__step pager__step--disabled">前へ</span>
-      <% end %>
-      <ol class="pager__list">
-        <% @page[:series].each do |item| %>
-          <% if item == "gap" %>
-            <li class="pager__gap" aria-hidden="true">…</li>
-          <% elsif item.is_a?(String) %>
-            <li><span class="pager__page pager__page--current" aria-current="page"><%= item %></span></li>
-          <% else %>
-            <li><%= link_to item, admin_users_path(approval: @approval, page: item), class: "pager__page" %></li>
-          <% end %>
-        <% end %>
-      </ol>
-      <% if @page[:next] %>
-        <%= link_to "次へ", admin_users_path(approval: @approval, page: @page[:next]), class: "pager__step" %>
-      <% else %>
-        <span class="pager__step pager__step--disabled">次へ</span>
-      <% end %>
-      <span class="pager__range"><%= @page[:from] %>–<%= @page[:to] %> / <%= @page[:count] %>件</span>
-    </nav>
-  <% end %>
+  <%= render "shared/pager", page: @page, query: { approval: @approval } %>
 </div>

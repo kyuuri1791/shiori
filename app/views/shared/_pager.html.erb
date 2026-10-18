@@ -1,0 +1,26 @@
+<% if page[:last] > 1 %>
+  <nav class="flex flex-wrap items-center gap-1.5" aria-label="ページ">
+    <% if page[:previous] %>
+      <%= link_to "前へ", url_for(query.merge(page: page[:previous])), class: "pager-btn font-sans" %>
+    <% else %>
+      <span class="pager-btn cursor-default font-sans opacity-45">前へ</span>
+    <% end %>
+    <ol class="flex flex-wrap gap-1">
+      <% page[:series].each do |item| %>
+        <% if item == "gap" %>
+          <li class="px-1 text-muted" aria-hidden="true">…</li>
+        <% elsif item.is_a?(String) %>
+          <li><span class="pager-btn cursor-default border-accent bg-accent text-card" aria-current="page"><%= item %></span></li>
+        <% else %>
+          <li><%= link_to item, url_for(query.merge(page: item)), class: "pager-btn" %></li>
+        <% end %>
+      <% end %>
+    </ol>
+    <% if page[:next] %>
+      <%= link_to "次へ", url_for(query.merge(page: page[:next])), class: "pager-btn font-sans" %>
+    <% else %>
+      <span class="pager-btn cursor-default font-sans opacity-45">次へ</span>
+    <% end %>
+    <span class="ml-auto text-xs text-muted tabular-nums"><%= page[:from] %>–<%= page[:to] %> / <%= page[:count] %>件</span>
+  </nav>
+<% end %>

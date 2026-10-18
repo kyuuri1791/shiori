@@ -1,6 +1,7 @@
 module Api
   class UserShelfItemsBulkController < ApplicationController
-    def create(user_shelf_items)
+    def create
+      user_shelf_items = params.require(:user_shelf_items)
       raise ActionController::BadRequest, "user_shelf_items must be an array" unless user_shelf_items.is_a?(Array) && user_shelf_items.all?(ActionController::Parameters)
 
       form = Forms::UserShelfItemBulkRegistrationForm.new(

@@ -1,6 +1,12 @@
-import { STATUS, lastReadOn } from "./text"
+import { lastReadOn } from "./text"
 import Cover from "./Cover"
+import StatusPill from "./StatusPill"
+import { STARS } from "./drawerStyles"
 import type { UserShelfItem } from "./types"
+
+export const LIST_CLASS = "overflow-hidden rounded-[10px] border border-line bg-card"
+export const EMPTY_CLASS = "grid justify-items-center gap-3 px-5 py-10 text-center text-muted"
+export const EMPTY_TITLE_CLASS = "m-0 font-display text-lg text-ink"
 
 const stars = (n: number): string => (n ? "★".repeat(n) + "☆".repeat(5 - n) : "")
 
@@ -15,25 +21,20 @@ function UserShelfItemRow({ userShelfItem, open, readOnly, onOpen, onCycle }: Ro
   const last = lastReadOn(userShelfItem)
   const readCount = userShelfItem.reading_dates.length
   return (
-    <div className={`userShelfItemRow${open ? " userShelfItemRow--open" : ""}`} data-keeps-drawer-open onClick={() => onOpen(userShelfItem.id)}>
+    <div className={`grid cursor-pointer grid-cols-[32px_minmax(0,1fr)] items-center gap-x-3 gap-y-1 border-t border-line px-3.5 py-2.5 first:border-t-0 hover:bg-paper sm:grid-cols-[32px_minmax(0,1fr)_auto] ${open ? "shadow-[inset_3px_0_0_var(--color-accent)]" : ""}`} data-keeps-drawer-open onClick={() => onOpen(userShelfItem.id)}>
       <Cover book={userShelfItem.book} title={userShelfItem.title} />
-      <div className="userShelfItemRow__main">
-        <div className="userShelfItemRow__title">{userShelfItem.title}</div>
-        <div className="userShelfItemRow__meta">
+      <div className="min-w-0">
+        <div className="font-display text-base font-bold wrap-anywhere">{userShelfItem.title}</div>
+        <div className="flex flex-wrap gap-x-2.5 gap-y-0.5 text-[13px] text-muted">
           {userShelfItem.author && <span>{userShelfItem.author}</span>}
-          {userShelfItem.tags.map(t => <span key={t} className="userShelfItemRow__tag">#{t}</span>)}
-          {!userShelfItem.book && <span className="userShelfItemRow__unmatched" title="本のマスタに紐付いていません">未照合</span>}
+          {userShelfItem.tags.map(t => <span key={t} className="text-accent">#{t}</span>)}
+          {!userShelfItem.book && <span className="rounded border border-dashed border-line px-1 text-[11px]" title="本のマスタに紐付いていません">未照合</span>}
         </div>
       </div>
-      <div className="userShelfItemRow__side">
-        {userShelfItem.rating > 0 && <span className="userShelfItemRow__stars" aria-label={`評価${userShelfItem.rating}`}>{stars(userShelfItem.rating)}</span>}
-        {last && <span className="userShelfItemRow__date">{last.replaceAll("-", ".")}{readCount > 1 ? `（${readCount}回）` : ""}</span>}
-        {readOnly ? <span className={`statusPill statusPill--${userShelfItem.status}`}>{STATUS[userShelfItem.status]}</span> : (
-          <button
-            type="button" className={`statusPill statusPill--${userShelfItem.status}`} title="クリックで状態を切り替え"
-            onClick={e => { e.stopPropagation(); onCycle(userShelfItem) }}
-          >{STATUS[userShelfItem.status]}</button>
-        )}
+      <div className="col-start-2 flex items-center justify-start gap-2.5 sm:col-start-auto sm:justify-end">
+        {userShelfItem.rating > 0 && <span className={STARS} aria-label={`評価${userShelfItem.rating}`}>{stars(userShelfItem.rating)}</span>}
+        {last && <span className="font-mono text-xs whitespace-nowrap text-muted tabular-nums">{last.replaceAll("-", ".")}{readCount > 1 ? `（${readCount}回）` : ""}</span>}
+        <StatusPill status={userShelfItem.status} onClick={readOnly ? undefined : e => { e.stopPropagation(); onCycle(userShelfItem) }} />
       </div>
     </div>
   )
@@ -50,23 +51,23 @@ type Props = RowHandlers & {
 }
 
 export default function UserShelfItemList({ readOnly = false, emptyText, userShelfItems, total, loading, openId, onOpen, onCycle, onSeed }: Props) {
-  const listClass = `userShelfItemList${loading ? " userShelfItemList--loading" : ""}`
+  const listClass = `${LIST_CLASS} transition-opacity${loading ? " opacity-55" : ""}`
   if (!total && emptyText) {
-    return <div className="userShelfItemList"><div className="userShelfItemList__empty">{emptyText}</div></div>
+    return <div className={LIST_CLASS}><div className={EMPTY_CLASS}>{emptyText}</div></div>
   }
   if (!total) {
     return (
-      <div className="userShelfItemList">
-        <div className="userShelfItemList__empty">
-          <h2 className="userShelfItemList__emptyTitle">まだ本がありません</h2>
+      <div className={LIST_CLASS}>
+        <div className={EMPTY_CLASS}>
+          <h2 className={EMPTY_TITLE_CLASS}>まだ本がありません</h2>
           <div>上の欄にタイトルかISBNを入れてEnterで1冊目を登録できます。<br />まず触ってみたいときは、見本の本を入れて試せます（#見本 タグが付くので、あとで見分けられます）。</div>
-          <button className="button" type="button" onClick={onSeed}>見本の本を5冊入れる</button>
+          <button className="btn" type="button" onClick={onSeed}>見本の本を5冊入れる</button>
         </div>
       </div>
     )
   }
   if (!userShelfItems.length) {
-    return <div className={listClass}><div className="userShelfItemList__empty">条件に合う本はありません。</div></div>
+    return <div className={listClass}><div className={EMPTY_CLASS}>条件に合う本はありません。</div></div>
   }
   return (
     <div className={listClass} aria-busy={loading}>

@@ -1,16 +1,13 @@
 <% content_for :title, "ログイン | 読書カード帳" %>
-<% content_for :head do %>
-  <%= vite_stylesheet_tag "sessions/new/application.scss" %>
-<% end %>
-<main class="auth">
-  <h1 class="auth__title">読書カード帳</h1>
-  <%= tag.div(flash[:alert], class: "flash flash--alert") if flash[:alert] %>
-  <%= tag.div(flash[:notice], class: "flash") if flash[:notice] %>
+<main class="mx-auto mt-[12vh] grid max-w-[380px] gap-3.5 py-7 pr-[max(16px,env(safe-area-inset-right,0px))] pl-[max(16px,env(safe-area-inset-left,0px))]">
+  <h1 class="mt-0 mb-1.5 font-display text-[26px] tracking-[.06em]">読書カード帳</h1>
+  <%= tag.div(flash[:alert], class: "banner") if flash[:alert] %>
+  <%= tag.div(flash[:notice], class: "banner-info") if flash[:notice] %>
 
-  <%= form_with url: session_path, class: "auth__form" do |form| %>
-    <%= form.email_field :email_address, class: "auth__input", required: true, autofocus: true, autocomplete: "username", placeholder: "メールアドレス", value: params[:email_address] %>
-    <%= form.password_field :password, class: "auth__input", required: true, autocomplete: "current-password", placeholder: "パスワード", maxlength: 72 %>
-    <%= form.submit "ログイン", class: "auth__submit" %>
+  <%= form_with url: session_path, class: "grid min-w-0 gap-2.5" do |form| %>
+    <%= form.email_field :email_address, class: "input-box bg-card px-3 py-2.5", required: true, autofocus: true, autocomplete: "username", placeholder: "メールアドレス", value: params[:email_address] %>
+    <%= form.password_field :password, class: "input-box bg-card px-3 py-2.5", required: true, autocomplete: "current-password", placeholder: "パスワード", maxlength: 72 %>
+    <%= form.submit "ログイン", class: "btn-primary w-full py-2.5" %>
   <% end %>
-  <p class="auth__switch">はじめての方は <%= link_to "ユーザー登録", new_registration_path, class: "link" %></p>
+  <p class="m-0 text-sm text-muted">はじめての方は <%= link_to "ユーザー登録", new_registration_path, class: "link" %></p>
 </main>

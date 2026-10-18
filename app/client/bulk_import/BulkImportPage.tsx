@@ -69,41 +69,41 @@ export default function BulkImportPage({ kind }: { kind: BulkImportKind }) {
   }
 
   return (
-    <section className="bulkImport" aria-labelledby="bulk-import-title">
-      <h2 className="bulkImport__title" id="bulk-import-title">{TITLES[kind]}</h2>
-      <ol className="bulkImport__steps">
+    <section className="grid gap-3.5" aria-labelledby="bulk-import-title">
+      <h2 className="m-0 font-display text-[22px]" id="bulk-import-title">{TITLES[kind]}</h2>
+      <ol className="bulk-steps">
         {STEPS.map((label, index) => (
-          <li key={label} className={`bulkImport__step${index === 0 ? " bulkImport__step--current" : ""}`} aria-current={index === 0 ? "step" : undefined}>{label}</li>
+          <li key={label} className={`bulk-step ${index === 0 ? "bulk-step-current" : ""}`} aria-current={index === 0 ? "step" : undefined}>{label}</li>
         ))}
       </ol>
       {error && <div className="banner" role="alert">{error}</div>}
 
-      <form className="bulkImport__form" onSubmit={e => { e.preventDefault(); read() }}>
+      <form className="bulk-panel" onSubmit={e => { e.preventDefault(); read() }}>
         {kind === "photo" ? (
           <>
-            <p className="bulkImport__lead">背表紙が写った本棚の写真を選んで「読み取る」を押してください。写真は読み取りが終わるとすぐに消します。</p>
-            <input type="file" accept="image/*" className="bulkImport__file" aria-label="本棚の写真" disabled={working} onChange={e => setFile(e.target.files?.[0] ?? null)} />
+            <p className="bulk-lead">背表紙が写った本棚の写真を選んで「読み取る」を押してください。写真は読み取りが終わるとすぐに消します。</p>
+            <input type="file" accept="image/*" className="w-full min-w-0" aria-label="本棚の写真" disabled={working} onChange={e => setFile(e.target.files?.[0] ?? null)} />
           </>
         ) : (
           <>
-            <p className="bulkImport__lead">「とあるシリーズ一通り」「ハリポタ全巻」のように書いて「探す」を押してください。AI がシリーズの本を本のマスタから探します。</p>
+            <p className="bulk-lead">「とあるシリーズ一通り」「ハリポタ全巻」のように書いて「探す」を押してください。AI がシリーズの本を本のマスタから探します。</p>
             <input
-              type="text" className="bulkImport__input" value={query} maxLength={AI_QUERY_MAX_LENGTH} spellCheck={false} autoFocus disabled={working}
+              type="text" className="input-box px-3 py-2.5" value={query} maxLength={AI_QUERY_MAX_LENGTH} spellCheck={false} autoFocus disabled={working}
               placeholder="とあるシリーズ一通り" aria-label="探したいシリーズ" onChange={e => setQuery(e.target.value)}
             />
           </>
         )}
         {working ? (
-          <div className="bulkImport__actions">
-            <span className="bulkImport__working" role="status">
+          <div className="bulk-actions">
+            <span className="mr-auto text-[13px] text-muted" role="status">
               <span className="spinner" aria-hidden="true" /> {kind === "photo" ? "背表紙から書名を読み取っています。30秒ほどかかることがあります" : "シリーズを探しています。10秒ほどかかることがあります"}
             </span>
-            <button className="button" type="button" onClick={cancel}>やめる</button>
+            <button className="btn" type="button" onClick={cancel}>やめる</button>
           </div>
         ) : (
-          <div className="bulkImport__actions">
-            <a className="button button--link" href="/">本棚へ戻る</a>
-            <button className={`button${source ? "" : " button--primary"}`} type="submit" disabled={kind === "photo" ? !file : !query.trim()}>
+          <div className="bulk-actions">
+            <a className="btn-link" href="/">本棚へ戻る</a>
+            <button className={source ? "btn" : "btn-primary"} type="submit" disabled={kind === "photo" ? !file : !query.trim()}>
               {kind === "photo" ? (source ? "読み取り直す" : "読み取る") : (source ? "探し直す" : "探す")}
             </button>
           </div>
@@ -111,15 +111,15 @@ export default function BulkImportPage({ kind }: { kind: BulkImportKind }) {
       </form>
 
       {source && (
-        <div className="bulkImport__pick">
-          <p className="bulkImport__lead">登録する本にチェックを付けてください。本棚にある本は外してあります。{kind === "photo" && "違う版は選び直せます。"}</p>
-          <div className="bulkImport__toolbar">
-            <button className="button button--small" type="button" disabled={bulk.pending > 0} onClick={() => bulk.setAll(true)}>全部選ぶ</button>
-            <button className="button button--small" type="button" disabled={bulk.pending > 0} onClick={() => bulk.setAll(false)}>全部外す</button>
+        <div className="grid gap-3.5">
+          <p className="bulk-lead">登録する本にチェックを付けてください。本棚にある本は外してあります。{kind === "photo" && "違う版は選び直せます。"}</p>
+          <div className="flex gap-2">
+            <button className="btn btn-small" type="button" disabled={bulk.pending > 0} onClick={() => bulk.setAll(true)}>全部選ぶ</button>
+            <button className="btn btn-small" type="button" disabled={bulk.pending > 0} onClick={() => bulk.setAll(false)}>全部外す</button>
           </div>
           <BulkSelectList rows={bulk.rows} onChoice={bulk.setChoice} />
-          <div className="bulkImport__actions">
-            <button className="button button--primary" type="button" disabled={bulk.pending > 0 || !bulk.selected.length} onClick={() => postToConfirmation(kind, bulk.selected)}>
+          <div className="bulk-actions">
+            <button className="btn-primary" type="button" disabled={bulk.pending > 0 || !bulk.selected.length} onClick={() => postToConfirmation(kind, bulk.selected)}>
               {bulk.pending > 0 ? `照合中（残り${bulk.pending}冊）` : `確認へ（${bulk.selected.length}冊）`}
             </button>
           </div>

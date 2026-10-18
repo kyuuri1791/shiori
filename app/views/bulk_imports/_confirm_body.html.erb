@@ -1,7 +1,7 @@
 <div class="page">
   <%= render "bulk_imports/header" %>
-  <section class="bulkImport" aria-labelledby="bulk-import-title">
-    <h2 class="bulkImport__title" id="bulk-import-title"><%= bulk_import_title %></h2>
+  <section class="grid gap-3.5" aria-labelledby="bulk-import-title">
+    <h2 class="m-0 font-display text-[22px]" id="bulk-import-title"><%= bulk_import_title %></h2>
     <%= render "bulk_imports/steps", current: :confirm %>
     <% if @form.errors.any? %>
       <div class="banner" role="alert">
@@ -10,7 +10,7 @@
         <% end %>
       </div>
     <% end %>
-    <%= form_with url: url_for(action: :create), method: :post, class: "bulkImport__confirm" do %>
+    <%= form_with url: url_for(action: :create), method: :post, class: "grid gap-3.5" do %>
       <% @user_shelf_items_attributes.each_with_index do |attributes, index| %>
         <% attributes.except("tags").each do |key, value| %>
           <%= hidden_field_tag "user_shelf_items[#{index}][#{key}]", value, id: nil %>
@@ -19,24 +19,24 @@
           <%= hidden_field_tag "user_shelf_items[#{index}][tags][]", tag, id: nil %>
         <% end %>
       <% end %>
-      <p class="bulkImport__lead">次の<%= @form.user_shelf_items.size %>冊を登録します。登録するときの状態を選んでください。</p>
-      <label class="bulkImport__status">
+      <p class="bulk-lead">次の<%= @form.user_shelf_items.size %>冊を登録します。登録するときの状態を選んでください。</p>
+      <label class="flex items-center gap-2 justify-self-start text-sm">
         <span>登録するときの状態</span>
-        <%= select_tag :status, bulk_import_status_options(@status), class: "bulkImport__select" %>
+        <%= select_tag :status, bulk_import_status_options(@status), class: "rounded-lg border border-line bg-card px-2.5 py-1.5" %>
       </label>
-      <ol class="bulkReview">
+      <ol class="bulk-review">
         <% @form.user_shelf_items.each do |user_shelf_item| %>
-          <li class="bulkReview__item">
-            <div class="bulkReview__body">
-              <div class="bulkReview__source bulkReview__source--title"><%= user_shelf_item.title.presence || "ISBN #{user_shelf_item.isbn13}" %></div>
-              <span class="bulkReview__note"><%= bulk_import_user_shelf_item_detail(user_shelf_item) %></span>
+          <li class="bulk-review-item">
+            <div class="grid min-w-0 flex-1 gap-1.5">
+              <div class="text-[15px] wrap-anywhere"><%= user_shelf_item.title.presence || "ISBN #{user_shelf_item.isbn13}" %></div>
+              <span class="text-[13px] text-muted"><%= bulk_import_user_shelf_item_detail(user_shelf_item) %></span>
             </div>
           </li>
         <% end %>
       </ol>
-      <div class="bulkImport__actions">
-        <button class="button" type="button" onclick="history.back()">戻る</button>
-        <%= button_tag "#{@form.user_shelf_items.size}冊を登録する", class: "button button--primary", disabled: @form.errors.any? %>
+      <div class="bulk-actions">
+        <button class="btn" type="button" onclick="history.back()">戻る</button>
+        <%= button_tag "#{@form.user_shelf_items.size}冊を登録する", class: "btn-primary", disabled: @form.errors.any? %>
       </div>
     <% end %>
   </section>

@@ -43,20 +43,20 @@ export default function Scanner({ onIsbn, onClose }: Props) {
 
   return (
     <dialog ref={dialogRef} className="modal" onClose={onClose}>
-      <h2 className="modal__title">バーコードで登録</h2>
-      <div className="scanner">
-        <video ref={videoRef} className="scanner__video" muted playsInline />
-        <div className="scanner__status">{status}</div>
-        <ul className="scanner__log">
+      <h2 className="modal-title">バーコードで登録</h2>
+      <div className="grid gap-2.5">
+        <video ref={videoRef} className="aspect-[4/3] w-full max-w-full rounded-lg bg-black object-cover" muted playsInline />
+        <div className="min-h-[1.4em] text-[13px] text-muted">{status}</div>
+        <ul className="grid max-h-40 gap-1 overflow-y-auto text-[13px]">
           {log.map(item => (
-            <li key={item.code} className={`scanner__logItem${item.state === "owned" || item.state === "unmatched" ? " scanner__logItem--skipped" : ""}${item.state === "failed" ? " scanner__logItem--failed" : ""}`}>
+            <li key={item.code} className={item.state === "failed" ? "text-stamp" : item.state === "owned" || item.state === "unmatched" ? "text-muted" : undefined}>
               {item.code} {item.title && `『${item.title}』`} {item.state === "pending" ? "探しています…" : RESULT_LABEL[item.state]}
             </li>
           ))}
         </ul>
       </div>
-      <div className="modal__actions">
-        <button className="button" type="button" onClick={() => dialogRef.current?.close()}>閉じる</button>
+      <div className="modal-actions">
+        <button className="btn" type="button" onClick={() => dialogRef.current?.close()}>閉じる</button>
       </div>
     </dialog>
   )

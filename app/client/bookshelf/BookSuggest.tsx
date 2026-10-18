@@ -52,27 +52,27 @@ export default function BookSuggest({ search, activeIndex = -1, floating = false
   if (!status && !search.books.length && !header) return null
 
   return (
-    <ul className={`suggest${floating ? " suggest--floating" : ""}`} role="listbox">
-      {header && <li className="suggest__header">{header}</li>}
-      {status && <li className="suggest__status">{status}</li>}
+    <ul className={`max-h-[360px] overflow-y-auto rounded-[10px] border border-line bg-card p-1 shadow-float ${floating ? "absolute inset-x-0 top-[calc(100%+4px)] z-15" : ""}`} role="listbox">
+      {header && <li className="mb-1 flex items-center gap-2 border-b border-dashed border-line px-2.5 pt-2 pb-1.5 text-xs text-accent">{header}</li>}
+      {status && <li className="px-2.5 py-2 text-[13px] text-muted">{status}</li>}
       {search.books.map((book, i) => (
         <li
           key={book.id}
           role="option"
           aria-selected={i === activeIndex}
-          className={`suggest__item${i === activeIndex ? " suggest__item--active" : ""}`}
+          className={`grid cursor-pointer grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-2.5 rounded-md px-2 py-1.5 ${i === activeIndex ? "bg-accent-soft" : ""}`}
           onMouseDown={e => { e.preventDefault(); onPick(book) }}
           onMouseEnter={() => onHover?.(i)}
         >
           <Cover book={book} title={book.title} />
-          <div className="suggest__body">
-            <div className="suggest__title">{book.title}</div>
-            <div className="suggest__meta">{bookSummary(book)}</div>
+          <div className="min-w-0">
+            <div className="font-display font-bold wrap-anywhere">{book.title}</div>
+            <div className="text-xs text-muted wrap-anywhere">{bookSummary(book)}</div>
           </div>
-          {book.owned && <span className="suggest__badge">登録済み</span>}
+          {book.owned && <span className="rounded border border-line px-1 text-[11px] whitespace-nowrap text-muted">登録済み</span>}
         </li>
       ))}
-      {footer && <li className="suggest__footer">{footer}</li>}
+      {footer && <li className="mt-1 border-t border-dashed border-line px-2.5 pt-2 pb-1">{footer}</li>}
     </ul>
   )
 }

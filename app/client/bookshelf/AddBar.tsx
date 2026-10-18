@@ -8,6 +8,7 @@ type Mode = "ai" | "keyword"
 
 const MODES: Record<Mode, string> = { ai: "AIで探す", keyword: "キーワードで探す" }
 const MODE_KEYS = Object.keys(MODES) as Mode[]
+const MODE_TAB_CLASS = "rounded-full border-0 px-2.5 py-1 text-[13px] disabled:cursor-default disabled:opacity-60"
 const EMPTY_FORM = { title: "", author: "", isbn: "" }
 export const AI_QUERY_MAX_LENGTH = 100
 const AI_SUGGEST_LIMIT = 10
@@ -79,16 +80,16 @@ function AiForm({ busy, canUseAi, notice, onAddText, onAddBook, onAddIsbn, regis
 
   const footer = ai.state.status !== "idle" && ai.state.status !== "pending" && single ? (
     <button
-      className="button button--link" type="button"
+      className="btn-link" type="button"
       onMouseDown={e => { e.preventDefault(); onAddText({ title: single, author: "", tags: [] }).then(done) }}
     >見つからないときは『{single}』をそのまま登録</button>
   ) : null
 
   return (
-    <div className="addBar__body">
+    <div className="relative h-[130px] min-w-0 flex-[1_1_320px]">
       <textarea
         id="addInput" value={text} maxLength={AI_QUERY_MAX_LENGTH}
-        className="addBar__input addBar__input--ai"
+        className="input-box h-full resize-none overflow-y-auto px-3 py-2.5 leading-relaxed disabled:cursor-not-allowed"
         placeholder="このすばの最新刊"
         spellCheck={false}
         disabled={!canUseAi}
@@ -97,7 +98,7 @@ function AiForm({ busy, canUseAi, notice, onAddText, onAddBook, onAddIsbn, regis
         onBlur={() => setOpen(false)}
         onKeyDown={keys.onKeyDown}
       />
-      {!canUseAi && <p className="addBar__lockedNotice">{notice}</p>}
+      {!canUseAi && <p className="absolute inset-x-3 bottom-2.5 m-0 text-[13px] text-muted">{notice}</p>}
       {open && single && ai.state.status !== "idle" && (
         <BookSuggest
           floating
@@ -141,12 +142,12 @@ function KeywordForm({ busy, canRegister, notice, searcher, onAddText, onAddBook
   registerSubmit(() => submit(search.books[keys.active] ?? null))
 
   return (
-    <div className="addBar__body">
-      <div className="keywordForm">
-        <label className="keywordForm__label" htmlFor="addInput">タイトル</label>
-        <div className="keywordForm__field">
+    <div className="relative h-[130px] min-w-0 flex-[1_1_320px]">
+      <div className="grid auto-rows-[38px] grid-cols-[5em_minmax(0,1fr)] items-center gap-x-2.5 gap-y-2">
+        <label className="text-xs tracking-[.08em] text-muted" htmlFor="addInput">タイトル</label>
+        <div className="relative h-full min-w-0">
           <input
-            id="addInput" type="text" className="keywordForm__input" spellCheck={false} value={form.title} maxLength={500}
+            id="addInput" type="text" className="input-box h-full py-0" spellCheck={false} value={form.title} maxLength={500}
             placeholder="火車"
             onChange={set("title")} onFocus={() => setOpen(true)} onBlur={() => setOpen(false)} onKeyDown={keys.onKeyDown}
           />
@@ -161,23 +162,23 @@ function KeywordForm({ busy, canRegister, notice, searcher, onAddText, onAddBook
             />
           )}
         </div>
-        <label className="keywordForm__label" htmlFor="addAuthor">著者</label>
+        <label className="text-xs tracking-[.08em] text-muted" htmlFor="addAuthor">著者</label>
         <input
-          id="addAuthor" type="text" className="keywordForm__input" spellCheck={false} value={form.author} maxLength={500}
+          id="addAuthor" type="text" className="input-box h-full py-0" spellCheck={false} value={form.author} maxLength={500}
           placeholder="宮部みゆき"
           onChange={set("author")} onKeyDown={keys.onKeyDown}
         />
         {canRegister ? (
           <>
-            <label className="keywordForm__label" htmlFor="addIsbn">ISBN</label>
+            <label className="text-xs tracking-[.08em] text-muted" htmlFor="addIsbn">ISBN</label>
             <input
-              id="addIsbn" type="text" inputMode="numeric" className="keywordForm__input" spellCheck={false} value={form.isbn} maxLength={20}
+              id="addIsbn" type="text" inputMode="numeric" className="input-box h-full py-0" spellCheck={false} value={form.isbn} maxLength={20}
               placeholder="978-4-10-136918-1"
               onChange={set("isbn")} onKeyDown={keys.onKeyDown}
             />
           </>
         ) : (
-          <p className="keywordForm__notice">{notice}</p>
+          <p className="col-span-full m-0 text-[13px] text-muted">{notice}</p>
         )}
       </div>
     </div>
@@ -226,43 +227,43 @@ export default function AddBar({ canRegister, canUseAi, notice, searcher, addSta
   }
 
   return (
-    <section className="addBar" aria-label="本を登録">
-      <div className="addBar__head">
-        <div className="addBar__modes" role="tablist" aria-label="探し方">
+    <section className="grid gap-2.5 rounded-[10px] border border-line bg-card p-3.5" aria-label="本を登録">
+      <div className="flex flex-wrap gap-1">
+        <div className="flex gap-1" role="tablist" aria-label="探し方">
           {MODE_KEYS.map(key => (
             <button
               key={key} type="button" role="tab" aria-selected={mode === key}
-              className={`addBar__mode${mode === key ? " addBar__mode--active" : ""}`}
+              className={`${MODE_TAB_CLASS} ${mode === key ? "bg-accent-soft font-medium text-accent" : "bg-transparent text-muted"}`}
               onClick={() => setMode(key)}
             >{MODES[key]}</button>
           ))}
         </div>
-        <button className="addBar__mode" type="button" disabled={!canRegister} onClick={onScan}>バーコードで読む</button>
+        <button className={`${MODE_TAB_CLASS} bg-transparent text-muted`} type="button" disabled={!canRegister} onClick={onScan}>バーコードで読む</button>
       </div>
-      <div className="addBar__row">
+      <div className="flex flex-wrap items-start gap-2">
         {mode === "ai" ? <AiForm key="ai" {...formProps} /> : <KeywordForm key="keyword" {...formProps} />}
-        <div className="addBar__side">
+        <div className="flex flex-col items-start gap-2">
           <div className="segmented" role="group" aria-label="登録時の状態">
             {STATUS_KEYS.map(key => (
               <button
                 key={key} type="button" aria-pressed={addStatus === key}
-                className={`segmented__option${addStatus === key ? " segmented__option--active" : ""}`}
+                className={`segmented-option ${addStatus === key ? "bg-accent text-card" : ""}`}
                 disabled={!canRegister}
                 onClick={() => onAddStatus(key)}
               >{STATUS[key]}</button>
             ))}
           </div>
-          <div className="addBar__actions">
-            <button className="button button--primary" type="button" disabled={busy || !canRegister} onClick={() => submitRef.current()}>登録</button>
+          <div className="flex gap-2">
+            <button className="btn-primary" type="button" disabled={busy || !canRegister} onClick={() => submitRef.current()}>登録</button>
           </div>
         </div>
       </div>
-      <div className="addBar__hint">
-        <span className="addBar__hintStack">
-          <span className={`addBar__hintText${mode === "ai" ? "" : " addBar__hintText--hidden"}`} aria-hidden={mode !== "ai"}>
-            <kbd className="addBar__key">Enter</kbd> で AI が探します（ISBN も可）
+      <div className="flex flex-wrap gap-x-3.5 gap-y-1 text-xs text-muted">
+        <span className="grid">
+          <span className={`col-start-1 row-start-1 ${mode === "ai" ? "" : "invisible"}`} aria-hidden={mode !== "ai"}>
+            <kbd className="rounded-[3px] bg-paper px-1 font-mono">Enter</kbd> で AI が探します（ISBN も可）
           </span>
-          <span className={`addBar__hintText${mode === "keyword" ? "" : " addBar__hintText--hidden"}`} aria-hidden={mode !== "keyword"}>
+          <span className={`col-start-1 row-start-1 ${mode === "keyword" ? "" : "invisible"}`} aria-hidden={mode !== "keyword"}>
             {canRegister ? "タイトルを入れると候補が出ます" : "タイトルを入れると候補が出ます。選ぶと Google ブックスが開きます"}
           </span>
         </span>
