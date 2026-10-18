@@ -30,6 +30,8 @@ ssh:
   keys:
     - ~/.ssh/oracle
 
+deploy_timeout: 180
+
 builder:
   arch: amd64
 
