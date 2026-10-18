@@ -1,6 +1,6 @@
 module Api
   module Public
-    class BaseController < Api::BaseController
+    class ApplicationController < Api::ApplicationController
       REQUESTS_PER_MINUTE = 30
 
       allow_unauthenticated_access

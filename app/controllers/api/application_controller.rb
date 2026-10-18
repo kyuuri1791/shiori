@@ -1,5 +1,5 @@
 module Api
-  class BaseController < ApplicationController
+  class ApplicationController < ::ApplicationController
     before_action { request.format = :json }
 
     rescue_from ActiveRecord::RecordNotFound do

@@ -1,5 +1,5 @@
 module Api
-  class EditionMatchesController < BaseController
+  class EditionMatchesController < ApplicationController
     rate_limit to: 60, within: 1.minute, with: -> { render_error("照合が多すぎます。少し待ってからもう一度お試しください", :too_many_requests) }
 
     def create(items)

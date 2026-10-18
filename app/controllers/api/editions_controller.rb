@@ -1,13 +1,11 @@
 module Api
-  class EditionsController < BaseController
+  class EditionsController < ApplicationController
     rate_limit to: 120, within: 1.minute, only: :search, with: -> { render_error("検索が多すぎます。少し待ってからもう一度お試しください", :too_many_requests) }
 
     def search(q: "", author: "")
       editions = Edition.suggest(q.to_s.first(BookQuery::MAX_TEXT_LENGTH), author: author.to_s.first(BookQuery::MAX_TEXT_LENGTH))
       owned = Current.user.books.where(edition_id: editions.map(&:id)).pluck(:edition_id).to_set
       render json: { editions: editions.map { it.as_card_json.merge(owned: owned.include?(it.id)) } }
-    rescue ActiveRecord::QueryCanceled
-      render_error("検索に時間がかかりすぎました。もう少し詳しく入力してください", :service_unavailable)
     end
 
     def lookup(isbn: nil)

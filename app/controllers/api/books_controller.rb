@@ -1,5 +1,5 @@
 module Api
-  class BooksController < BaseController
+  class BooksController < ApplicationController
     include ShelfPagination
 
     MAX_OPS = 100

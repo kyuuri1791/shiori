@@ -1,6 +1,6 @@
 module Api
   module Public
-    class ShelvesController < BaseController
+    class ShelvesController < ApplicationController
       include ShelfPagination
 
       def show(id)
