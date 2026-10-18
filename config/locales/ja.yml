@@ -1,0 +1,7 @@
+ja:
+  enumerize:
+    book:
+      status:
+        want: 読みたい
+        reading: 読んでる
+        read: 読んだ

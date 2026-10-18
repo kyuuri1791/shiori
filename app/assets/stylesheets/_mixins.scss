@@ -1,0 +1,19 @@
+@mixin narrow($width: 560px) {
+  @media (max-width: $width) {
+    @content;
+  }
+}
+
+@mixin gutter($size: 16px) {
+  padding-left: max($size, env(safe-area-inset-left, 0px));
+  padding-right: max($size, env(safe-area-inset-right, 0px));
+}
+
+@mixin field-box {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  border-radius: 8px;
+  padding: 8px 10px;
+  width: 100%;
+  min-width: 0;
+}

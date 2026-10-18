@@ -1,0 +1,46 @@
+require "rails_helper"
+
+RSpec.describe "Users" do
+  let!(:active) { create(:user, email_address: "active@example.com") }
+  let!(:quiet) { create(:user, email_address: "quiet@example.com") }
+
+  before do
+    create(:book, user: active, created_at: 1.day.ago)
+    create(:book, user: active, created_at: 2.days.ago)
+    create(:book, user: quiet, created_at: 10.days.ago)
+    create(:book, user: quiet, created_at: 1.hour.ago).discard!
+  end
+
+  it "ログインしていなくても、本棚の一覧を最近登録した順に見られる" do
+    get users_path
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body.index("本棚 ##{active.id}")).to be < response.body.index("本棚 ##{quiet.id}")
+  end
+
+  it "削除した本は冊数に数えない" do
+    get users_path
+
+    expect(response.body).to include("2冊").and include("1冊")
+  end
+
+  it "メールアドレスは出さない" do
+    get users_path
+
+    expect(response.body).not_to include("active@example.com")
+  end
+
+  it "検索エンジンに載せない" do
+    get users_path
+
+    expect(response.headers["X-Robots-Tag"]).to eq "noindex, nofollow"
+  end
+
+  it "20件ずつページに分ける" do
+    create_list(:user, 19)
+
+    get users_path(page: 2)
+
+    expect(response.body.scan(%(class="user-list__item")).size).to eq 1
+  end
+end

@@ -1,0 +1,10 @@
+create_table "editions", force: :cascade do |t|
+  t.string "title", null: false
+  t.string "authors", array: true, null: false, default: []
+  t.string "publisher"
+  t.string "published_on"
+  t.string "cover_url"
+  t.timestamps
+  t.index [ "title" ], using: :gin, opclass: :gin_trgm_ops
+  t.index [ "title" ], name: "index_editions_on_title_prefix", opclass: :text_pattern_ops
+end

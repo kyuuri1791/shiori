@@ -1,0 +1,17 @@
+.rating {
+  display: flex;
+  gap: 2px;
+
+  &__star {
+    border: 0;
+    background: none;
+    font-size: 22px;
+    line-height: 1;
+    padding: 2px;
+    color: var(--line);
+
+    &--on {
+      color: var(--stamp);
+    }
+  }
+}

@@ -1,0 +1,31 @@
+$colors: (
+  paper: #eef1f4,
+  card: #fbfcfd,
+  ink: #1d2733,
+  muted: #5d6b7a,
+  line: #d3dae2,
+  accent: #2f4d8a,
+  accent-soft: #dfe6f3,
+  stamp: #b2452e,
+  want: #8a6a12,
+  want-bg: #f4ecd2,
+  reading: #1f6d5a,
+  reading-bg: #d6ece5,
+  read: #2f4d8a,
+  read-bg: #dfe6f3,
+  shadow: 0 10px 30px rgba(29, 39, 51, .14),
+);
+
+@mixin palette($colors) {
+  @each $name, $value in $colors {
+    --#{$name}: #{$value};
+  }
+}
+
+:root {
+  @include palette($colors);
+  --font-display: "Zen Old Mincho", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --font-body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}

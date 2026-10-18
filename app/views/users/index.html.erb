@@ -1,0 +1,65 @@
+<% content_for :title, "みんなの本棚 | 読書カード帳" %>
+<% content_for :head do %>
+  <meta name="robots" content="noindex, nofollow">
+  <%= vite_stylesheet_tag "users/index/application.scss" %>
+<% end %>
+
+<div class="page">
+  <header class="page-header">
+    <h1 class="page-header__title"><%= link_to "読書カード帳", root_path, class: "page-header__home" %></h1>
+    <div class="page-header__tally">
+      <% if Current.user %>
+        <%= link_to "自分の本棚", root_path, class: "button button--link" %>
+      <% else %>
+        <%= link_to "ログイン", new_session_path, class: "button button--link" %>
+      <% end %>
+    </div>
+  </header>
+
+  <section class="user-list" aria-labelledby="user-list-title">
+    <h2 class="user-list__title" id="user-list-title">みんなの本棚</h2>
+    <% if @users.empty? %>
+      <p class="user-list__empty">まだ本棚がありません。</p>
+    <% else %>
+      <ul class="user-list__items">
+        <% @users.each do |user| %>
+          <li>
+            <%= link_to shelf_path(user), class: "user-list__item" do %>
+              <span class="user-list__name">本棚 #<%= user.id %><% if user.id == Current.user&.id %><span class="user-list__mine">あなたの本棚</span><% end %></span>
+              <span class="user-list__meta">
+                <%= user.books_count %>冊<% if user.last_added_at %> · 最近の登録 <%= user.last_added_at.to_date.strftime("%Y.%m.%d") %><% end %>
+              </span>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+  </section>
+
+  <% if @page[:last] > 1 %>
+    <nav class="pager" aria-label="ページ">
+      <% if @page[:previous] %>
+        <%= link_to "前へ", users_path(page: @page[:previous]), class: "pager__step" %>
+      <% else %>
+        <span class="pager__step pager__step--disabled">前へ</span>
+      <% end %>
+      <ol class="pager__list">
+        <% @page[:series].each do |item| %>
+          <% if item == "gap" %>
+            <li class="pager__gap" aria-hidden="true">…</li>
+          <% elsif item.is_a?(String) %>
+            <li><span class="pager__page pager__page--current" aria-current="page"><%= item %></span></li>
+          <% else %>
+            <li><%= link_to item, users_path(page: item), class: "pager__page" %></li>
+          <% end %>
+        <% end %>
+      </ol>
+      <% if @page[:next] %>
+        <%= link_to "次へ", users_path(page: @page[:next]), class: "pager__step" %>
+      <% else %>
+        <span class="pager__step pager__step--disabled">次へ</span>
+      <% end %>
+      <span class="pager__range"><%= @page[:from] %>–<%= @page[:to] %> / <%= @page[:count] %>件</span>
+    </nav>
+  <% end %>
+</div>

@@ -1,0 +1,28 @@
+.bulk-bar {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  box-shadow: var(--shadow);
+  z-index: 20;
+  width: max-content;
+  max-width: calc(100% - 32px);
+
+  &__tag-input {
+    border: 1px solid color-mix(in srgb, var(--paper) 30%, transparent);
+    background: transparent;
+    color: var(--paper);
+    border-radius: 8px;
+    padding: 5px 10px;
+    width: 120px;
+    font-size: 13px;
+  }
+}

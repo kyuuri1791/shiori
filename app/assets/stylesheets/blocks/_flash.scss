@@ -1,0 +1,11 @@
+.flash {
+  font-size: 14px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px dashed var(--line);
+
+  &--alert {
+    color: var(--stamp);
+    border-color: var(--stamp);
+  }
+}

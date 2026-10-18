@@ -1,0 +1,70 @@
+x-app: &app
+  build:
+    context: .
+    dockerfile: Dockerfile.dev
+    args:
+      UID: ${UID:-1000}
+      GID: ${GID:-1000}
+  image: dokusho_card-dev
+  volumes:
+    - .:/app
+    - bundle:/usr/local/bundle
+    - pnpm_store:/home/app/.local/share/pnpm
+  environment:
+    DATABASE_HOST: db
+    DATABASE_USERNAME: postgres
+    DATABASE_PASSWORD: postgres
+    VITE_DEV_SERVER_URL: http://localhost:5173
+    PIDFILE: /tmp/server.pid
+  depends_on:
+    db:
+      condition: service_healthy
+
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 2s
+      retries: 30
+
+  web:
+    <<: *app
+    command: bin/rails server -b 0.0.0.0 -p 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+      vite:
+        condition: service_started
+      jobs:
+        condition: service_started
+    tty: true
+    stdin_open: true
+
+  jobs:
+    <<: *app
+    command: bin/jobs
+    environment:
+      DATABASE_HOST: db
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: postgres
+      PIDFILE: /tmp/server.pid
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+
+  vite:
+    <<: *app
+    command: pnpm exec vite
+    ports:
+      - "5173:5173"
+    depends_on: []
+
+volumes:
+  pg_data:
+  bundle:
+  pnpm_store:

@@ -1,0 +1,85 @@
+version: "8.1"
+
+compose:
+  files:
+    - compose.yaml
+  project_name: dokusho_card
+
+interaction:
+  bash:
+    description: web コンテナでシェルを開く
+    service: web
+    command: bash
+    compose:
+      run_options: [no-deps]
+
+  bundle:
+    description: bundle コマンド
+    service: web
+    command: bundle
+    compose:
+      run_options: [no-deps]
+
+  pnpm:
+    description: pnpm コマンド
+    service: vite
+    command: pnpm
+
+  rails:
+    description: rails コマンド
+    service: web
+    command: bin/rails
+    subcommands:
+      s:
+        description: Rails と Vite を起動（http://localhost:3000）
+        service: web
+        compose:
+          method: up
+
+  ridgepole:
+    description: db/Schemafile を DB に反映（例 dip ridgepole、dip ridgepole --dry-run）
+    service: web
+    command: bundle exec ridgepole -c config/database.yml -E development -s primary -f db/Schemafile --apply
+    subcommands:
+      test:
+        description: テスト用 DB に反映
+        service: web
+        command: bundle exec ridgepole -c config/database.yml -E test -s primary -f db/Schemafile --apply
+
+  psql:
+    description: 開発用 DB に psql で接続
+    service: web
+    command: env PGPASSWORD=postgres psql -h db -U postgres dokusho_card_development
+
+  sql:
+    description: SQL ファイルを1トランザクションで流す（例 dip sql sql/master/20261101_add_editions.sql）
+    service: web
+    command: env PGPASSWORD=postgres psql -h db -U postgres dokusho_card_development -v ON_ERROR_STOP=1 --single-transaction -f
+
+  ci:
+    description: RuboCop・型チェック・セキュリティチェック・RSpec をまとめて流す
+    service: web
+    command: bin/ci
+
+  rspec:
+    description: RSpec を実行
+    service: web
+    environment:
+      RAILS_ENV: test
+    command: bundle exec rspec
+
+provision:
+  - dip compose down --volumes --remove-orphans
+  - dip compose build
+  - dip bundle install
+  - dip pnpm install
+  - dip compose up -d db
+  - dip rails db:create
+  - dip rails db:extensions
+  - dip rails db:extensions RAILS_ENV=test
+  - dip ridgepole
+  - dip ridgepole test
+  - dip rails db:schema:load:queue
+  - dip rails db:schema:load:queue RAILS_ENV=test
+  - dip rails master:load
+  - dip rails db:seed

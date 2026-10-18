@@ -1,0 +1,23 @@
+FROM ruby:4.0.7
+
+COPY --from=node:22-bookworm-slim /usr/local/bin/node /usr/local/bin/node
+COPY --from=node:22-bookworm-slim /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+ && ln -s ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+
+RUN npm install -g pnpm@12.9.0
+
+RUN apt-get update -qq \
+ && apt-get install -y --no-install-recommends libpq-dev postgresql-client \
+ && rm -rf /var/lib/apt/lists/*
+
+ARG UID=1000
+ARG GID=1000
+RUN groupadd -g ${GID} app && useradd -m -u ${UID} -g ${GID} app \
+ && mkdir -p /usr/local/bundle /home/app/.local/share/pnpm \
+ && chown -R app:app /usr/local/bundle /app /home/app/.local
+
+ENV BUNDLE_PATH=/usr/local/bundle \
+    BUNDLE_APP_CONFIG=/usr/local/bundle
+USER app
+WORKDIR /app

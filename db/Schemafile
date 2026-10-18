@@ -1,0 +1,1 @@
+Dir[File.expand_path("schemas/*.schema", __dir__)].sort.each { require it }

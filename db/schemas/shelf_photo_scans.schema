@@ -1,0 +1,15 @@
+create_table "shelf_photo_scans", force: :cascade do |t|
+  t.bigint "user_id", null: false
+  t.integer "status", null: false, default: 1
+  t.binary "image"
+  t.string "content_type"
+  t.jsonb "books", null: false, default: []
+  t.string "error_message"
+  t.integer "input_tokens"
+  t.integer "output_tokens"
+  t.timestamps
+  t.index [ "user_id", "created_at" ]
+  t.index [ "created_at" ]
+end
+add_foreign_key "shelf_photo_scans", "users"
+add_check_constraint "shelf_photo_scans", "status = ANY (ARRAY[1, 2, 3])", name: "shelf_photo_scans_status_range"
