@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "BulkImports" do
-  let!(:user) { create(:user, password: "password-for-test") }
+  let!(:user) { create(:user, :approved, password: "password-for-test") }
 
   context "ログインしているとき" do
     before do

@@ -19,6 +19,10 @@ module Api
         render_error("ログインしてください", :unauthorized)
       end
 
+      def request_approval
+        render_error("AI の機能は、管理者の承認を受けると使えます", :forbidden)
+      end
+
       def render_error(message, status)
         render json: { error: message }, status:
       end

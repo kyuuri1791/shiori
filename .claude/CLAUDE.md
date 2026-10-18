@@ -19,6 +19,7 @@
 | まとめてチェック（RuboCop・型チェック・bundler-audit・Brakeman・RSpec） | `dip ci` |
 | 型チェック（TypeScript） | `dip pnpm typecheck` |
 | パスワードを変える | `dip rails runner 'User.find_by!(email_address: "dev@example.com").update!(password: "...")'`（メール送信の機能はないので、再設定はコンソールで行う） |
+| 管理者にする | `dip rails runner 'User.find_by!(email_address: "...").update!(admin: true)'`（管理画面 `/admin` で AI の機能を承認する。管理者を決める画面はない） |
 | 開発用のユーザーと本棚を作り直す | `dip rails dev:reset`（マスタはそのまま残す） |
 | マスタを投入する | `dip rails master:load`（`config/master_data.yml` で指定した `data/master/` のファイルを投入。sha256 を確認し、入っている ISBN は飛ばす） |
 | openBD から全件取り直す | `dip rails master:harvest`（約40分。openBD に負荷をかけないよう1秒に1回以下。普段は不要） |

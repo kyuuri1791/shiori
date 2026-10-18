@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "Api::ShelfPhotoScans" do
-  let!(:user) { create(:user, password: "password-for-test") }
+  let!(:user) { create(:user, :approved, password: "password-for-test") }
   let!(:png) { Rack::Test::UploadedFile.new(StringIO.new("\x89PNG\r\n\x1A\nimage".b), "image/png", true, original_filename: "shelf.png") }
   let!(:svg) { Rack::Test::UploadedFile.new(StringIO.new("<svg></svg>"), "image/png", false, original_filename: "shelf.png") }
 

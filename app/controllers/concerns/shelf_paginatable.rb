@@ -24,6 +24,13 @@ module ShelfPaginatable
     end
 
     def viewer_props(mode:, owner: nil)
-      { mode:, owner_id: owner&.id, signed_in: current_user.present?, is_owner: current_user.present? && current_user == owner }
+      {
+        mode:,
+        owner_id: owner&.id,
+        signed_in: current_user.present?,
+        is_owner: current_user.present? && current_user == owner,
+        is_admin: current_user&.admin? || false,
+        approved: current_user&.approved? || false
+      }
     end
 end

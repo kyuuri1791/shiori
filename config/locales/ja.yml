@@ -9,6 +9,7 @@ ja:
     models:
       user_shelf_item: 本棚の本
       book: 本
+      user: ユーザー
     attributes:
       user_shelf_item:
         title: タイトル
@@ -19,11 +20,19 @@ ja:
         notes: メモ
         reading_dates: 読了日
         user: ユーザー
+      user:
+        email_address: メールアドレス
+        password: パスワード
+        password_confirmation: パスワード（確認）
   errors:
     format: "%{attribute}%{message}"
     messages:
       blank: を入力してください
       too_long: は%{count}文字以内で入力してください
+      too_short: は%{count}文字以上で入力してください
+      invalid: の形式が正しくありません
+      confirmation: が一致しません
+      password_too_long: が長すぎます
       inclusion: は一覧にありません
       required: を入力してください
       taken: はすでに存在します

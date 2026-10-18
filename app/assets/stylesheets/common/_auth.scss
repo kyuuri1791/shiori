@@ -1,4 +1,4 @@
-@use "../../common/mixins";
+@use "mixins";
 
 .auth {
   max-width: 380px;
@@ -39,5 +39,22 @@
     color: var(--card);
     font-weight: 500;
     cursor: pointer;
+  }
+
+  &__lead {
+    margin: 0;
+    font-weight: 500;
+  }
+
+  &__errors {
+    margin: 0;
+    padding-left: 28px;
+  }
+
+  &__note,
+  &__switch {
+    margin: 0;
+    font-size: 14px;
+    color: var(--muted);
   }
 }

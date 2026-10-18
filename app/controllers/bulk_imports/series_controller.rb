@@ -2,6 +2,8 @@ module BulkImports
   class SeriesController < ApplicationController
     include BulkImportable
 
+    require_approval
+
     def new
     end
 

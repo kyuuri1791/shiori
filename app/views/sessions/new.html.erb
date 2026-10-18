@@ -12,5 +12,5 @@
     <%= form.password_field :password, class: "auth__input", required: true, autocomplete: "current-password", placeholder: "パスワード", maxlength: 72 %>
     <%= form.submit "ログイン", class: "auth__submit" %>
   <% end %>
-
+  <p class="auth__switch">はじめての方は <%= link_to "ユーザー登録", new_registration_path, class: "link" %></p>
 </main>

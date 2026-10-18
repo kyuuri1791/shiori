@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
   resource :session
+  resource :registration, only: %i[new create]
 
   root "user_shelf_items#index"
   resources :user_shelf_items, only: :index
@@ -16,6 +17,13 @@ Rails.application.routes.draw do
         post :confirm
         get :complete
       end
+    end
+  end
+
+  namespace :admin do
+    root "users#index"
+    resources :users, only: :index do
+      resource :approval, only: %i[create destroy]
     end
   end
 

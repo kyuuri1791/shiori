@@ -1,0 +1,103 @@
+.adminUsers {
+  display: grid;
+  gap: 12px;
+
+  &__head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px 16px;
+  }
+
+  &__title {
+    font-family: var(--font-display);
+    font-size: 20px;
+    margin: 0;
+  }
+
+  &__filters {
+    display: flex;
+    gap: 12px;
+    font-size: 14px;
+  }
+
+  &__filter {
+    color: var(--muted);
+    text-decoration: none;
+
+    &--current {
+      color: var(--ink);
+      font-weight: 700;
+    }
+  }
+
+  &__empty {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    font-size: 14px;
+
+    th,
+    td {
+      padding: 10px 12px;
+      text-align: left;
+      vertical-align: middle;
+      border-top: 1px solid var(--line);
+    }
+
+    th {
+      border-top: 0;
+      color: var(--muted);
+      font-weight: 500;
+      font-size: 12px;
+    }
+  }
+
+  &__id,
+  &__date {
+    font-family: var(--font-mono);
+    white-space: nowrap;
+  }
+
+  &__email {
+    overflow-wrap: anywhere;
+  }
+
+  &__badge {
+    margin-left: 8px;
+    font-size: 12px;
+    color: var(--accent);
+  }
+
+  &__approval {
+    white-space: nowrap;
+  }
+
+  &__approvedAt {
+    margin-right: 8px;
+    color: var(--muted);
+  }
+
+  &__action {
+    display: inline;
+  }
+
+  @media (max-width: 640px) {
+    &__date {
+      display: none;
+    }
+
+    &__table th:nth-child(3) {
+      display: none;
+    }
+  }
+}

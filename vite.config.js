@@ -17,7 +17,7 @@ export default defineConfig(({ command }) => ({
     emptyOutDir: true,
     manifest: true,
     rollupOptions: {
-      input: [...globSync("app/client/entrypoints/*.tsx"), ...globSync("app/assets/stylesheets/**/application.scss")],
+      input: [...globSync("app/client/entrypoints/*.{ts,tsx}"), ...globSync("app/assets/stylesheets/**/application.scss")],
     },
   },
 }))

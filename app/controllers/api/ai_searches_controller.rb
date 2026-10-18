@@ -1,5 +1,7 @@
 module Api
   class AiSearchesController < ApplicationController
+    require_approval
+
     rate_limit to: 10, within: 1.minute, only: :create, with: -> { render_error("AI検索が多すぎます。少し待ってからもう一度お試しください", :too_many_requests) }
 
     def create(q)

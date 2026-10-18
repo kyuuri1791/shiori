@@ -12,6 +12,10 @@ module Authenticatable
     def allow_unauthenticated_access(**options)
       skip_before_action :require_authentication, **options
     end
+
+    def require_approval(**options)
+      before_action :ensure_approved, **options
+    end
   end
 
   private
@@ -26,6 +30,14 @@ module Authenticatable
 
     def require_authentication
       current_user || request_authentication
+    end
+
+    def ensure_approved
+      request_approval unless current_user&.approved?
+    end
+
+    def request_approval
+      redirect_to root_path
     end
 
     def resume_session

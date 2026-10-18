@@ -1,0 +1,87 @@
+<% content_for :title, "ユーザー管理 | 管理画面 | 読書カード帳" %>
+<% content_for :head do %>
+  <meta name="robots" content="noindex, nofollow">
+  <%= vite_stylesheet_tag "admin/users/index/application.scss" %>
+  <%= vite_entry_tags "entrypoints/admin.ts" %>
+<% end %>
+
+<div class="page">
+  <header class="pageHeader">
+    <h1 class="pageHeader__title">
+      <%= link_to admin_root_path, class: "pageHeader__home" do %>読書カード帳<span class="adminBadge">管理画面</span><% end %>
+    </h1>
+  </header>
+
+  <section class="adminUsers" aria-labelledby="admin-users-title">
+    <div class="adminUsers__head">
+      <h2 class="adminUsers__title" id="admin-users-title">ユーザー管理</h2>
+      <nav class="adminUsers__filters" aria-label="絞り込み">
+        <%= link_to "すべて", admin_users_path, class: "adminUsers__filter#{" adminUsers__filter--current" unless @approval == "pending"}", aria: { current: (@approval == "pending" ? nil : "page") } %>
+        <%= link_to "AI 未承認", admin_users_path(approval: "pending"), class: "adminUsers__filter#{" adminUsers__filter--current" if @approval == "pending"}", aria: { current: (@approval == "pending" ? "page" : nil) } %>
+      </nav>
+    </div>
+    <%= tag.div(flash[:notice], class: "banner banner--info", role: "status") if flash[:notice] %>
+
+    <% if @users.empty? %>
+      <p class="adminUsers__empty">該当するユーザーはいません。</p>
+    <% else %>
+      <table class="adminUsers__table">
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">メールアドレス</th>
+            <th scope="col">登録日</th>
+            <th scope="col">AI の機能</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @users.each do |user| %>
+            <tr>
+              <td class="adminUsers__id"><%= user.id %></td>
+              <td class="adminUsers__email">
+                <%= user.email_address %>
+                <% if user.admin? %><span class="adminUsers__badge">管理者</span><% end %>
+              </td>
+              <td class="adminUsers__date"><%= user.created_at.to_date.strftime("%Y.%m.%d") %></td>
+              <td class="adminUsers__approval">
+                <% if user.approved? %>
+                  <span class="adminUsers__approvedAt"><%= user.approved_at.to_date.strftime("%Y.%m.%d") %> に承認</span>
+                  <%= button_to "取り消す", admin_user_approval_path(user), method: :delete, class: "button button--link", form_class: "adminUsers__action" %>
+                <% else %>
+                  <%= button_to "承認する", admin_user_approval_path(user), class: "button button--primary", form_class: "adminUsers__action", form: { data: { confirm: "#{user.email_address} を承認します。よろしいですか？" } } %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  </section>
+
+  <% if @page[:last] > 1 %>
+    <nav class="pager" aria-label="ページ">
+      <% if @page[:previous] %>
+        <%= link_to "前へ", admin_users_path(approval: @approval, page: @page[:previous]), class: "pager__step" %>
+      <% else %>
+        <span class="pager__step pager__step--disabled">前へ</span>
+      <% end %>
+      <ol class="pager__list">
+        <% @page[:series].each do |item| %>
+          <% if item == "gap" %>
+            <li class="pager__gap" aria-hidden="true">…</li>
+          <% elsif item.is_a?(String) %>
+            <li><span class="pager__page pager__page--current" aria-current="page"><%= item %></span></li>
+          <% else %>
+            <li><%= link_to item, admin_users_path(approval: @approval, page: item), class: "pager__page" %></li>
+          <% end %>
+        <% end %>
+      </ol>
+      <% if @page[:next] %>
+        <%= link_to "次へ", admin_users_path(approval: @approval, page: @page[:next]), class: "pager__step" %>
+      <% else %>
+        <span class="pager__step pager__step--disabled">次へ</span>
+      <% end %>
+      <span class="pager__range"><%= @page[:from] %>–<%= @page[:to] %> / <%= @page[:count] %>件</span>
+    </nav>
+  <% end %>
+</div>

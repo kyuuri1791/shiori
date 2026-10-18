@@ -122,6 +122,6 @@ export type SaveUserShelfItem = (id: number, attributes: UserShelfItemAttributes
 
 export type ViewerMode = "owner" | "readonly" | "guest"
 
-export type Viewer = { mode: ViewerMode; owner_id: number | null; signed_in: boolean; is_owner: boolean }
+export type Viewer = { mode: ViewerMode; owner_id: number | null; signed_in: boolean; is_owner: boolean; is_admin: boolean; approved: boolean }
 
 export type BookshelfPage = ShelfPage & { viewer: Viewer }

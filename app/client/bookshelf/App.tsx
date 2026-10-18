@@ -56,6 +56,7 @@ const csrfToken = (): string => document.querySelector<HTMLMetaElement>('meta[na
 export default function App({ initial }: { initial: BookshelfPage }) {
   const { viewer } = initial
   const canEdit = viewer.mode === "owner"
+  const canUseAi = canEdit && viewer.approved
   const { shelf, setShelf, shelfRef, filtersRef, filters, changeFilters, query, setQuery, loading, error, setError, load } =
     useShelf(initial, shelfFetcher(initial))
   const [openUserShelfItem, setOpenUserShelfItem] = useState<UserShelfItem | null>(null)
@@ -260,9 +261,11 @@ export default function App({ initial }: { initial: BookshelfPage }) {
 
   const { page, facets } = shelf
   const userShelfItems = hiddenIds.size ? shelf.userShelfItems.filter(b => !hiddenIds.has(b.id)) : shelf.userShelfItems
-  const registerNotice = viewer.signed_in
-    ? <>この本棚には登録できません。<a className="link" href="/">自分の本棚</a>で登録できます</>
-    : <><a className="link" href="/session/new">ログイン</a>すると、本を登録したり AI で探したりできます</>
+  const registerNotice = !viewer.signed_in
+    ? <><a className="link" href="/registration/new">ユーザー登録</a>か<a className="link" href="/session/new">ログイン</a>をすると、本を登録できます</>
+    : canEdit
+      ? <>AI の機能は、管理者の承認を受けると使えます。それまでは「キーワード」で探して登録できます</>
+      : <>この本棚には登録できません。<a className="link" href="/">自分の本棚</a>で登録できます</>
 
   return (
     <>
@@ -275,16 +278,22 @@ export default function App({ initial }: { initial: BookshelfPage }) {
                 <span>本棚 <b className="pageHeader__count">{facets.counts.all}</b> 冊</span>
               </>
             )}
-            {canEdit && <button className="button button--link" type="button" onClick={() => setImporting(true)}>まとめて登録</button>}
+            {canUseAi && <button className="button button--link" type="button" onClick={() => setImporting(true)}>まとめて登録</button>}
             <a className="button button--link" href="/users">みんなの本棚</a>
             {viewer.mode === "readonly" && viewer.signed_in && <a className="button button--link" href="/">自分の本棚</a>}
+            {viewer.is_admin && <a className="button button--link" href="/admin">管理</a>}
             {viewer.signed_in ? (
               <form className="pageHeader__logout" method="post" action="/session">
                 <input type="hidden" name="_method" value="delete" />
                 <input type="hidden" name="authenticity_token" value={csrfToken()} />
                 <button className="button button--link" type="submit">ログアウト</button>
               </form>
-            ) : <a className="button button--link" href="/session/new">ログイン</a>}
+            ) : (
+              <>
+                <a className="button button--link" href="/registration/new">ユーザー登録</a>
+                <a className="button button--link" href="/session/new">ログイン</a>
+              </>
+            )}
           </div>
         </header>
         {viewer.mode === "readonly" && viewer.is_owner && <div className="banner banner--info">あなたの本棚の公開ページです。ログインしていない人にも、このように見えます。</div>}
@@ -292,7 +301,7 @@ export default function App({ initial }: { initial: BookshelfPage }) {
 
         <AddBar
           canRegister={canEdit}
-          canUseAi={canEdit}
+          canUseAi={canUseAi}
           notice={registerNotice}
           searcher={viewer.signed_in ? api.searchBooks : (q, signal) => api.searchPublicBooks(q, signal)}
           addStatus={addStatus}
@@ -355,7 +364,7 @@ export default function App({ initial }: { initial: BookshelfPage }) {
         />
       ) : <UserShelfItemDetail userShelfItem={openUserShelfItem} onClose={() => setOpenUserShelfItem(null)} />}
 
-      {canEdit && importing && <BulkImportMenu onClose={() => setImporting(false)} />}
+      {canUseAi && importing && <BulkImportMenu onClose={() => setImporting(false)} />}
 
       {canEdit && scanning && (
         <Suspense fallback={null}>

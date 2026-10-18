@@ -20,7 +20,7 @@ class DevSeeder
   end
 
   def run
-    user = User.find_or_create_by!(email_address: "dev@example.com") { it.password = "password" }
+    user = User.find_or_create_by!(email_address: "dev@example.com") { it.assign_attributes(password: "password", admin: true, approved_at: Time.current) }
     warn "no master data loaded; run `dip rails master:load` first for a realistic shelf" unless Book.exists?
     shelved = user.user_shelf_items.exists? ? 0 : build_shelf(user)
     puts "user_shelf_items created: #{shelved}"

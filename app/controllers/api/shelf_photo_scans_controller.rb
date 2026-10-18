@@ -1,5 +1,7 @@
 module Api
   class ShelfPhotoScansController < ApplicationController
+    require_approval
+
     rate_limit to: 3, within: 1.minute, only: :create, with: -> { render_error("写真の読み取りが多すぎます。少し待ってからもう一度お試しください", :too_many_requests) }
 
     def create(image)

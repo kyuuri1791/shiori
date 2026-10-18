@@ -199,7 +199,7 @@ type Props = {
 
 export default function AddBar({ canRegister, canUseAi, notice, searcher, addStatus, onAddStatus, onAddText, onAddBook, onAddIsbn, onScan }: Props) {
   const [storedMode, setStoredMode] = useState<Mode>(loadMode)
-  const [viewerMode, setViewerMode] = useState<Mode>("ai")
+  const [viewerMode, setViewerMode] = useState<Mode>(canRegister ? "keyword" : "ai")
   const mode: Mode = canUseAi ? storedMode : viewerMode
   const setMode = canUseAi ? setStoredMode : setViewerMode
   const [busy, setBusy] = useState(false)
