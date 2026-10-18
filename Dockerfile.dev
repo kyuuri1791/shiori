@@ -14,7 +14,7 @@ RUN apt-get update -qq \
 ARG UID=1000
 ARG GID=1000
 RUN groupadd -g ${GID} app && useradd -m -u ${UID} -g ${GID} app \
- && mkdir -p /usr/local/bundle /home/app/.local/share/pnpm \
+ && mkdir -p /app /usr/local/bundle /home/app/.local/share/pnpm \
  && chown -R app:app /usr/local/bundle /app /home/app/.local
 
 ENV BUNDLE_PATH=/usr/local/bundle \
