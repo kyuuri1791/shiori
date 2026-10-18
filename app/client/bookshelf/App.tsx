@@ -281,7 +281,6 @@ export default function App({ initial }: { initial: BookshelfPage }) {
             {canUseAi && <button className="button button--link" type="button" onClick={() => setImporting(true)}>まとめて登録</button>}
             <a className="button button--link" href="/users">みんなの本棚</a>
             {viewer.mode === "readonly" && viewer.signed_in && <a className="button button--link" href="/">自分の本棚</a>}
-            {viewer.is_admin && <a className="button button--link" href="/admin">管理</a>}
             {viewer.signed_in ? (
               <form className="pageHeader__logout" method="post" action="/session">
                 <input type="hidden" name="_method" value="delete" />
