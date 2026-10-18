@@ -32,7 +32,7 @@ export default function ShelfControls({ facets, filters, query, onQuery, onChang
             className={`shelf__tab${filters.status === key ? " shelf__tab--active" : ""}`}
             onClick={() => onChange({ status: key })}
           >
-            {label}<span className="shelf__tab-count">{facets.counts[key]}</span>
+            {label}<span className="shelf__tabCount">{facets.counts[key]}</span>
           </button>
         ))}
       </div>
@@ -47,14 +47,14 @@ export default function ShelfControls({ facets, filters, query, onQuery, onChang
           {unmatched > 0 && (
             <button
               type="button" aria-pressed={filters.unmatched}
-              className={`tag-chip tag-chip--unmatched${filters.unmatched ? " tag-chip--active" : ""}`}
+              className={`tagChip tagChip--unmatched${filters.unmatched ? " tagChip--active" : ""}`}
               onClick={() => onChange({ unmatched: !filters.unmatched, tag: null })}
             >未照合 {unmatched}</button>
           )}
           {facets.tags.map(({ tag, count }) => (
             <button
               key={tag} type="button" aria-pressed={filters.tag === tag}
-              className={`tag-chip${filters.tag === tag ? " tag-chip--active" : ""}`}
+              className={`tagChip${filters.tag === tag ? " tagChip--active" : ""}`}
               onClick={() => onChange({ tag: filters.tag === tag ? null : tag, unmatched: false })}
             >#{tag} {count}</button>
           ))}

@@ -1,6 +1,6 @@
-@use "../mixins";
+@use "../../common/mixins";
 
-.bulk-import-menu {
+.bulkImportMenu {
   display: grid;
   gap: 8px;
 

@@ -1,4 +1,4 @@
-.book-card {
+.bookCard {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 12px;
@@ -31,7 +31,7 @@
     text-underline-offset: 2px;
   }
 
-  &__external-note {
+  &__externalNote {
     position: absolute;
     width: 1px;
     height: 1px;

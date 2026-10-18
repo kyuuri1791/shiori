@@ -65,14 +65,14 @@ function BookPanel({ userShelfItem, onUpdate }: { userShelfItem: UserShelfItem; 
 
   if (book) {
     return (
-      <div className="book-card">
+      <div className="bookCard">
         <Cover book={book} title={book.title} large />
-        <div className="book-card__body">
+        <div className="bookCard__body">
           <strong>{book.title}</strong>
           <span>{bookSummary(book)}</span>
-          {book.isbn13 && <span className="book-card__isbn">ISBN {book.isbn13}</span>}
+          {book.isbn13 && <span className="bookCard__isbn">ISBN {book.isbn13}</span>}
           <ExternalLink target={externalTargetOfUserShelfItem(userShelfItem)} />
-          <div className="book-card__actions">
+          <div className="bookCard__actions">
             <button className="button button--small" type="button" onClick={() => onUpdate(userShelfItem.id, { book_id: null }, "本のマスタとの紐付けを外しました")}>紐付けを外す</button>
           </div>
         </div>
@@ -81,18 +81,18 @@ function BookPanel({ userShelfItem, onUpdate }: { userShelfItem: UserShelfItem; 
   }
 
   return (
-    <div className="book-card book-card--unmatched">
-      <div className="book-card__body">
-        <span className="book-card__note">本のマスタに紐付いていません。紐付けると書誌情報と書影が付き、同じ本の重複に気づけるようになります。</span>
-        {userShelfItem.isbn13 && <span className="book-card__isbn">読み取ったISBN {userShelfItem.isbn13}（本のマスタに未登録）</span>}
+    <div className="bookCard bookCard--unmatched">
+      <div className="bookCard__body">
+        <span className="bookCard__note">本のマスタに紐付いていません。紐付けると書誌情報と書影が付き、同じ本の重複に気づけるようになります。</span>
+        {userShelfItem.isbn13 && <span className="bookCard__isbn">読み取ったISBN {userShelfItem.isbn13}（本のマスタに未登録）</span>}
         <ExternalLink target={externalTargetOfUserShelfItem(userShelfItem)} />
         {!searching && (
-          <div className="book-card__actions">
+          <div className="bookCard__actions">
             <button className="button button--small" type="button" onClick={() => setSearching(true)}>マスタから探す</button>
           </div>
         )}
         {searching && (
-          <div className="book-card__search">
+          <div className="bookCard__search">
             <input
               type="text" className="field__input" aria-label="タイトルかISBNで探す" value={query} autoFocus
               onChange={e => { setQuery(e.target.value); setIsbnResult(null) }}
@@ -100,13 +100,13 @@ function BookPanel({ userShelfItem, onUpdate }: { userShelfItem: UserShelfItem; 
                 if (e.key === "Enter" && !e.nativeEvent.isComposing && isbnMode) { e.preventDefault(); findByIsbn() }
               }}
             />
-            {isbnMode && !isbnResult && <span className="book-card__note">ISBNで探すにはEnterを押してください</span>}
+            {isbnMode && !isbnResult && <span className="bookCard__note">ISBNで探すにはEnterを押してください</span>}
             <BookSuggest
               search={isbnMode ? (isbnResult ?? IDLE_SEARCH) : search}
               emptyText="候補が見つかりません。タイトルを短くするか、ISBNで探してください"
               onPick={link}
             />
-            <div className="book-card__actions">
+            <div className="bookCard__actions">
               <button className="button button--small" type="button" onClick={() => setSearching(false)}>やめる</button>
             </div>
           </div>
@@ -129,15 +129,15 @@ function ReadingList({ userShelfItem, onUpdate }: { userShelfItem: UserShelfItem
     <div className="field">
       <span className="field__label">読了日</span>
       {dates.length > 0 && (
-        <ul className="reading-list">
+        <ul className="readingList">
           {dates.map((date, i) => (
-            <li key={`${i}-${date}`} className="reading-list__item">
-              <span className="reading-list__nth">{i + 1}回目</span>
+            <li key={`${i}-${date}`} className="readingList__item">
+              <span className="readingList__nth">{i + 1}回目</span>
               <input
                 type="date" className="field__input" aria-label={`${i + 1}回目の読了日`} value={date}
                 onChange={e => e.target.value && save(dates.map((d, j) => (j === i ? e.target.value : d)), "読了日を変更しました")}
               />
-              <button className="reading-list__delete" type="button" onClick={() => save(dates.filter((_, j) => j !== i), "読了日を消しました")}>消す</button>
+              <button className="readingList__delete" type="button" onClick={() => save(dates.filter((_, j) => j !== i), "読了日を消しました")}>消す</button>
             </li>
           ))}
         </ul>
@@ -267,12 +267,12 @@ function DrawerBody({ userShelfItem, active, onClose, onUpdate, onSave, onStatus
               onSave(userShelfItem.id, { notes: [...userShelfItem.notes, { t: Date.now(), text }] })
             }}
           />
-          <ul className="note-list">
+          <ul className="noteList">
             {[...userShelfItem.notes].reverse().map(n => (
-              <li className="note-list__item" key={n.t}>
-                <span className="note-list__date">{new Date(n.t).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })}</span>
-                <p className="note-list__text">{n.text}</p>
-                <button className="note-list__delete" type="button" onClick={() => onUpdate(userShelfItem.id, { notes: userShelfItem.notes.filter(x => x.t !== n.t) }, "メモを消しました")}>消す</button>
+              <li className="noteList__item" key={n.t}>
+                <span className="noteList__date">{new Date(n.t).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })}</span>
+                <p className="noteList__text">{n.text}</p>
+                <button className="noteList__delete" type="button" onClick={() => onUpdate(userShelfItem.id, { notes: userShelfItem.notes.filter(x => x.t !== n.t) }, "メモを消しました")}>消す</button>
               </li>
             ))}
           </ul>

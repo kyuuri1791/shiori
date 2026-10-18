@@ -267,19 +267,19 @@ export default function App({ initial }: { initial: BookshelfPage }) {
   return (
     <>
       <div className="page">
-        <header className="page-header">
-          <h1 className="page-header__title"><a className="page-header__home" href="/">読書カード帳</a></h1>
-          <div className="page-header__tally">
+        <header className="pageHeader">
+          <h1 className="pageHeader__title"><a className="pageHeader__home" href="/">読書カード帳</a></h1>
+          <div className="pageHeader__tally">
             {viewer.mode !== "guest" && (
               <>
-                <span>本棚 <b className="page-header__count">{facets.counts.all}</b> 冊</span>
+                <span>本棚 <b className="pageHeader__count">{facets.counts.all}</b> 冊</span>
               </>
             )}
             {canEdit && <button className="button button--link" type="button" onClick={() => setImporting(true)}>まとめて登録</button>}
             <a className="button button--link" href="/users">みんなの本棚</a>
             {viewer.mode === "readonly" && viewer.signed_in && <a className="button button--link" href="/">自分の本棚</a>}
             {viewer.signed_in ? (
-              <form className="page-header__logout" method="post" action="/session">
+              <form className="pageHeader__logout" method="post" action="/session">
                 <input type="hidden" name="_method" value="delete" />
                 <input type="hidden" name="authenticity_token" value={csrfToken()} />
                 <button className="button button--link" type="submit">ログアウト</button>
@@ -305,7 +305,7 @@ export default function App({ initial }: { initial: BookshelfPage }) {
 
         {viewer.mode === "guest" ? (
           <section className="shelf" aria-label="本棚">
-            <p className="shelf__sample-note">見本の本棚です。本をクリックすると、読書カード（感想・メモ・読了日）を開けます。</p>
+            <p className="shelf__sampleNote">見本の本棚です。本をクリックすると、読書カード（感想・メモ・読了日）を開けます。</p>
             <UserShelfItemList
               readOnly
               userShelfItems={[GUEST_SAMPLE_USER_SHELF_ITEM]}
@@ -316,9 +316,9 @@ export default function App({ initial }: { initial: BookshelfPage }) {
               onCycle={() => {}}
               onSeed={() => {}}
             />
-            <div className="user-shelf-item-list">
-              <div className="user-shelf-item-list__empty">
-                <h2 className="user-shelf-item-list__empty-title">ログインすると、自分の本棚を作れます</h2>
+            <div className="userShelfItemList">
+              <div className="userShelfItemList__empty">
+                <h2 className="userShelfItemList__emptyTitle">ログインすると、自分の本棚を作れます</h2>
                 <div>上の欄で、本のマスタ（約194万冊）からタイトルで本を探せます。</div>
                 <a className="button button--primary" href="/session/new">ログイン</a>
               </div>

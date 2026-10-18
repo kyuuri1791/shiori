@@ -41,7 +41,7 @@ RSpec.describe "Users" do
 
     get users_path(page: 2)
 
-    expect(response.body.scan(%(class="user-list__item")).size).to eq 1
+    expect(response.body.scan(%(class="userList__item")).size).to eq 1
   end
 
   describe "本棚の公開ページ" do

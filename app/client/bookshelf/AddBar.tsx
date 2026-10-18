@@ -85,10 +85,10 @@ function AiForm({ busy, canUseAi, notice, onAddText, onAddBook, onAddIsbn, regis
   ) : null
 
   return (
-    <div className="add-bar__body">
+    <div className="addBar__body">
       <textarea
         id="addInput" value={text} maxLength={AI_QUERY_MAX_LENGTH}
-        className="add-bar__input add-bar__input--ai"
+        className="addBar__input addBar__input--ai"
         placeholder="このすばの最新刊"
         spellCheck={false}
         disabled={!canUseAi}
@@ -97,7 +97,7 @@ function AiForm({ busy, canUseAi, notice, onAddText, onAddBook, onAddIsbn, regis
         onBlur={() => setOpen(false)}
         onKeyDown={keys.onKeyDown}
       />
-      {!canUseAi && <p className="add-bar__locked-notice">{notice}</p>}
+      {!canUseAi && <p className="addBar__lockedNotice">{notice}</p>}
       {open && single && ai.state.status !== "idle" && (
         <BookSuggest
           floating
@@ -141,12 +141,12 @@ function KeywordForm({ busy, canRegister, notice, searcher, onAddText, onAddBook
   registerSubmit(() => submit(search.books[keys.active] ?? null))
 
   return (
-    <div className="add-bar__body">
-      <div className="keyword-form">
-        <label className="keyword-form__label" htmlFor="addInput">タイトル</label>
-        <div className="keyword-form__field">
+    <div className="addBar__body">
+      <div className="keywordForm">
+        <label className="keywordForm__label" htmlFor="addInput">タイトル</label>
+        <div className="keywordForm__field">
           <input
-            id="addInput" type="text" className="keyword-form__input" spellCheck={false} value={form.title} maxLength={500}
+            id="addInput" type="text" className="keywordForm__input" spellCheck={false} value={form.title} maxLength={500}
             placeholder="火車"
             onChange={set("title")} onFocus={() => setOpen(true)} onBlur={() => setOpen(false)} onKeyDown={keys.onKeyDown}
           />
@@ -161,23 +161,23 @@ function KeywordForm({ busy, canRegister, notice, searcher, onAddText, onAddBook
             />
           )}
         </div>
-        <label className="keyword-form__label" htmlFor="addAuthor">著者</label>
+        <label className="keywordForm__label" htmlFor="addAuthor">著者</label>
         <input
-          id="addAuthor" type="text" className="keyword-form__input" spellCheck={false} value={form.author} maxLength={500}
+          id="addAuthor" type="text" className="keywordForm__input" spellCheck={false} value={form.author} maxLength={500}
           placeholder="宮部みゆき"
           onChange={set("author")} onKeyDown={keys.onKeyDown}
         />
         {canRegister ? (
           <>
-            <label className="keyword-form__label" htmlFor="addIsbn">ISBN</label>
+            <label className="keywordForm__label" htmlFor="addIsbn">ISBN</label>
             <input
-              id="addIsbn" type="text" inputMode="numeric" className="keyword-form__input" spellCheck={false} value={form.isbn} maxLength={20}
+              id="addIsbn" type="text" inputMode="numeric" className="keywordForm__input" spellCheck={false} value={form.isbn} maxLength={20}
               placeholder="978-4-10-136918-1"
               onChange={set("isbn")} onKeyDown={keys.onKeyDown}
             />
           </>
         ) : (
-          <p className="keyword-form__notice">{notice}</p>
+          <p className="keywordForm__notice">{notice}</p>
         )}
       </div>
     </div>
@@ -226,22 +226,22 @@ export default function AddBar({ canRegister, canUseAi, notice, searcher, addSta
   }
 
   return (
-    <section className="add-bar" aria-label="本を登録">
-      <div className="add-bar__head">
-        <div className="add-bar__modes" role="tablist" aria-label="探し方">
+    <section className="addBar" aria-label="本を登録">
+      <div className="addBar__head">
+        <div className="addBar__modes" role="tablist" aria-label="探し方">
           {MODE_KEYS.map(key => (
             <button
               key={key} type="button" role="tab" aria-selected={mode === key}
-              className={`add-bar__mode${mode === key ? " add-bar__mode--active" : ""}`}
+              className={`addBar__mode${mode === key ? " addBar__mode--active" : ""}`}
               onClick={() => setMode(key)}
             >{MODES[key]}</button>
           ))}
         </div>
-        <button className="add-bar__mode" type="button" disabled={!canRegister} onClick={onScan}>バーコードで読む</button>
+        <button className="addBar__mode" type="button" disabled={!canRegister} onClick={onScan}>バーコードで読む</button>
       </div>
-      <div className="add-bar__row">
+      <div className="addBar__row">
         {mode === "ai" ? <AiForm key="ai" {...formProps} /> : <KeywordForm key="keyword" {...formProps} />}
-        <div className="add-bar__side">
+        <div className="addBar__side">
           <div className="segmented" role="group" aria-label="登録時の状態">
             {STATUS_KEYS.map(key => (
               <button
@@ -252,17 +252,17 @@ export default function AddBar({ canRegister, canUseAi, notice, searcher, addSta
               >{STATUS[key]}</button>
             ))}
           </div>
-          <div className="add-bar__actions">
+          <div className="addBar__actions">
             <button className="button button--primary" type="button" disabled={busy || !canRegister} onClick={() => submitRef.current()}>登録</button>
           </div>
         </div>
       </div>
-      <div className="add-bar__hint">
-        <span className="add-bar__hint-stack">
-          <span className={`add-bar__hint-text${mode === "ai" ? "" : " add-bar__hint-text--hidden"}`} aria-hidden={mode !== "ai"}>
-            <kbd className="add-bar__key">Enter</kbd> で AI が探します（ISBN も可）
+      <div className="addBar__hint">
+        <span className="addBar__hintStack">
+          <span className={`addBar__hintText${mode === "ai" ? "" : " addBar__hintText--hidden"}`} aria-hidden={mode !== "ai"}>
+            <kbd className="addBar__key">Enter</kbd> で AI が探します（ISBN も可）
           </span>
-          <span className={`add-bar__hint-text${mode === "keyword" ? "" : " add-bar__hint-text--hidden"}`} aria-hidden={mode !== "keyword"}>
+          <span className={`addBar__hintText${mode === "keyword" ? "" : " addBar__hintText--hidden"}`} aria-hidden={mode !== "keyword"}>
             {canRegister ? "タイトルを入れると候補が出ます" : "タイトルを入れると候補が出ます。選ぶと Google ブックスが開きます"}
           </span>
         </span>

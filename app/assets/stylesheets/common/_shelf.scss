@@ -2,7 +2,7 @@
   display: grid;
   gap: 12px;
 
-  &__sample-note {
+  &__sampleNote {
     margin: 0;
     font-size: 13px;
     color: var(--muted);
@@ -31,7 +31,7 @@
     }
   }
 
-  &__tab-count {
+  &__tabCount {
     font-family: var(--font-mono);
     font-size: 12px;
     margin-left: 4px;

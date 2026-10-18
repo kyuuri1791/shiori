@@ -5,9 +5,9 @@
 <% end %>
 
 <div class="page">
-  <header class="page-header">
-    <h1 class="page-header__title"><%= link_to "読書カード帳", root_path, class: "page-header__home" %></h1>
-    <div class="page-header__tally">
+  <header class="pageHeader">
+    <h1 class="pageHeader__title"><%= link_to "読書カード帳", root_path, class: "pageHeader__home" %></h1>
+    <div class="pageHeader__tally">
       <% if current_user %>
         <%= link_to "自分の本棚", root_path, class: "button button--link" %>
       <% else %>
@@ -16,17 +16,17 @@
     </div>
   </header>
 
-  <section class="user-list" aria-labelledby="user-list-title">
-    <h2 class="user-list__title" id="user-list-title">みんなの本棚</h2>
+  <section class="userList" aria-labelledby="user-list-title">
+    <h2 class="userList__title" id="user-list-title">みんなの本棚</h2>
     <% if @users.empty? %>
-      <p class="user-list__empty">まだ本棚がありません。</p>
+      <p class="userList__empty">まだ本棚がありません。</p>
     <% else %>
-      <ul class="user-list__items">
+      <ul class="userList__items">
         <% @users.each do |user| %>
           <li>
-            <%= link_to user_path(user), class: "user-list__item" do %>
-              <span class="user-list__name">本棚 #<%= user.id %><% if user.id == current_user&.id %><span class="user-list__mine">あなたの本棚</span><% end %></span>
-              <span class="user-list__meta">
+            <%= link_to user_path(user), class: "userList__item" do %>
+              <span class="userList__name">本棚 #<%= user.id %><% if user.id == current_user&.id %><span class="userList__mine">あなたの本棚</span><% end %></span>
+              <span class="userList__meta">
                 <%= user.user_shelf_items_count %>冊<% if user.last_added_at %> · 最近の登録 <%= user.last_added_at.to_date.strftime("%Y.%m.%d") %><% end %>
               </span>
             <% end %>

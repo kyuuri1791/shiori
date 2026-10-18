@@ -49,7 +49,7 @@ export default function Scanner({ onIsbn, onClose }: Props) {
         <div className="scanner__status">{status}</div>
         <ul className="scanner__log">
           {log.map(item => (
-            <li key={item.code} className={`scanner__log-item${item.state === "owned" || item.state === "unmatched" ? " scanner__log-item--skipped" : ""}${item.state === "failed" ? " scanner__log-item--failed" : ""}`}>
+            <li key={item.code} className={`scanner__logItem${item.state === "owned" || item.state === "unmatched" ? " scanner__logItem--skipped" : ""}${item.state === "failed" ? " scanner__logItem--failed" : ""}`}>
               {item.code} {item.title && `『${item.title}』`} {item.state === "pending" ? "探しています…" : RESULT_LABEL[item.state]}
             </li>
           ))}

@@ -30,14 +30,14 @@ export default function UserShelfItemDetail({ userShelfItem, onClose }: Props) {
                 <p className="field__text">{shown.author}</p>
               </div>
             )}
-            <div className={`book-card${shown.book ? "" : " book-card--unmatched"}`}>
+            <div className={`bookCard${shown.book ? "" : " bookCard--unmatched"}`}>
               {shown.book && <Cover book={shown.book} title={shown.book.title} large />}
-              <div className="book-card__body">
+              <div className="bookCard__body">
                 {shown.book && (
                   <>
                     <strong>{shown.book.title}</strong>
                     <span>{bookSummary(shown.book)}</span>
-                    {shown.book.isbn13 && <span className="book-card__isbn">ISBN {shown.book.isbn13}</span>}
+                    {shown.book.isbn13 && <span className="bookCard__isbn">ISBN {shown.book.isbn13}</span>}
                   </>
                 )}
                 <ExternalLink target={externalTargetOfUserShelfItem(shown)} />
@@ -46,12 +46,12 @@ export default function UserShelfItemDetail({ userShelfItem, onClose }: Props) {
             <div className="drawer__pair">
               <div className="field">
                 <span className="field__label">状態</span>
-                <span><span className={`status-pill status-pill--${shown.status}`}>{STATUS[shown.status]}</span></span>
+                <span><span className={`statusPill statusPill--${shown.status}`}>{STATUS[shown.status]}</span></span>
               </div>
               {shown.rating > 0 && (
                 <div className="field">
                   <span className="field__label">評価</span>
-                  <span className="user-shelf-item-row__stars" aria-label={`評価${shown.rating}`}>{stars(shown.rating)}</span>
+                  <span className="userShelfItemRow__stars" aria-label={`評価${shown.rating}`}>{stars(shown.rating)}</span>
                 </div>
               )}
             </div>
@@ -76,11 +76,11 @@ export default function UserShelfItemDetail({ userShelfItem, onClose }: Props) {
             {shown.notes.length > 0 && (
               <div className="field">
                 <span className="field__label">読みながらメモ</span>
-                <ul className="note-list">
+                <ul className="noteList">
                   {[...shown.notes].reverse().map(n => (
-                    <li className="note-list__item note-list__item--static" key={n.t}>
-                      <span className="note-list__date">{new Date(n.t).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })}</span>
-                      <p className="note-list__text">{n.text}</p>
+                    <li className="noteList__item noteList__item--static" key={n.t}>
+                      <span className="noteList__date">{new Date(n.t).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })}</span>
+                      <p className="noteList__text">{n.text}</p>
                     </li>
                   ))}
                 </ul>

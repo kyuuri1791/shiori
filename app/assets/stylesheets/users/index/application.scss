@@ -1,8 +1,8 @@
-@use "../../tokens";
-@use "../../base";
-@use "../../blocks/page";
-@use "../../blocks/page-header";
-@use "../../blocks/button";
-@use "../../blocks/link";
-@use "../../blocks/pager";
-@use "../../blocks/user-list";
+@use "../../common/tokens";
+@use "../../common/base";
+@use "../../common/page";
+@use "../../common/pageHeader";
+@use "../../common/button";
+@use "../../common/link";
+@use "../../common/pager";
+@use "userList";

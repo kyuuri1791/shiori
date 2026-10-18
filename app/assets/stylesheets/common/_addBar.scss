@@ -1,6 +1,6 @@
 $body-height: 130px;
 
-.add-bar {
+.addBar {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -72,7 +72,7 @@ $body-height: 130px;
     }
   }
 
-  &__locked-notice {
+  &__lockedNotice {
     position: absolute;
     left: 12px;
     right: 12px;
@@ -102,11 +102,11 @@ $body-height: 130px;
     gap: 4px 14px;
   }
 
-  &__hint-stack {
+  &__hintStack {
     display: grid;
   }
 
-  &__hint-text {
+  &__hintText {
     grid-area: 1 / 1;
 
     &--hidden {

@@ -1,6 +1,6 @@
-@use "../mixins";
+@use "mixins";
 
-.user-shelf-item-row {
+.userShelfItemRow {
   display: grid;
   grid-template-columns: 32px minmax(0, 1fr) auto;
   gap: 4px 12px;
