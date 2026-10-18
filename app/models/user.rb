@@ -7,13 +7,8 @@ class User < ApplicationRecord
   normalizes :email_address, with: ->(e) { e.strip.downcase }
 
   scope :with_shelf_summary, -> {
-    select("users.id", "shelf.books_count", "shelf.last_added_at")
-      .joins(<<~SQL.squish)
-        CROSS JOIN LATERAL (
-          SELECT count(*) AS books_count, max(books.created_at) AS last_added_at
-          FROM books WHERE books.user_id = users.id AND books.discarded_at IS NULL
-        ) shelf
-      SQL
-      .order(Arel.sql("shelf.last_added_at DESC NULLS LAST, users.id ASC"))
+    left_joins(:books).group(:id)
+      .select(:id, "count(books.id) AS books_count", "max(books.created_at) AS last_added_at")
+      .order(Arel.sql("max(books.created_at) DESC NULLS LAST"), :id)
   }
 end

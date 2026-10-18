@@ -25,23 +25,25 @@ class Edition < ApplicationRecord
     return if normalized.empty?
 
     Arel.sql(sanitize_sql_array([
-      "(regexp_replace(array_to_string(authors, ''), '[[:space:].・]', '', 'g') ILIKE ?) DESC",
+      "(regexp_replace(array_to_string(editions.authors, ''), '[[:space:].・]', '', 'g') ILIKE ?) DESC",
       "%#{sanitize_sql_like(normalized)}%"
     ]))
   end
 
   def self.prefix_search(q, author, limit)
-    where("title LIKE ?", "#{sanitize_sql_like(q)}%").order(*[ author_first(author), Arel.sql("char_length(title)"), :id ].compact).limit(limit)
+    where("editions.title LIKE ?", "#{sanitize_sql_like(q)}%")
+      .order(*[ author_first(author), Arel.sql("char_length(editions.title)"), :id ].compact)
+      .limit(limit)
   end
 
   def self.trigram_search(q, author, limit)
-    escaped = sanitize_sql_like(q)
-    where("title ILIKE :like OR title % :q", like: "%#{escaped}%", q:)
+    contains = "%#{sanitize_sql_like(q)}%"
+    where("editions.title ILIKE :contains OR editions.title % :q", contains:, q:)
       .order(*[
-        Arel.sql(sanitize_sql_array([ "(title ILIKE ?) DESC", "%#{escaped}%" ])),
+        Arel.sql(sanitize_sql_array([ "(editions.title ILIKE ?) DESC", contains ])),
         author_first(author),
-        Arel.sql(sanitize_sql_array([ "(title ILIKE ?) DESC", "#{escaped}%" ])),
-        Arel.sql(sanitize_sql_array([ "similarity(title, ?) DESC", q ])),
+        Arel.sql(sanitize_sql_array([ "(editions.title ILIKE ?) DESC", "#{sanitize_sql_like(q)}%" ])),
+        Arel.sql(sanitize_sql_array([ "similarity(editions.title, ?) DESC", q ])),
         :id
       ].compact)
       .limit(limit)

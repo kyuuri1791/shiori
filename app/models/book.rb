@@ -12,6 +12,14 @@ class Book < ApplicationRecord
   normalizes :isbn13, with: ->(v) { Isbn.parse(v)&.to_s }
   normalizes :tags, with: ->(tags) { Array(tags).map { it.to_s.strip.delete_prefix("#").delete_prefix("＃") }.reject(&:blank?).uniq }
 
+  scope :tagged, ->(tag) { where("books.tags @> ARRAY[?]::varchar[]", tag) }
+  scope :matching_text, ->(text) {
+    where(<<~SQL.squish, like: "%#{sanitize_sql_like(text)}%")
+      books.title ILIKE :like OR books.author ILIKE :like OR books.review ILIKE :like OR books.isbn13 ILIKE :like
+      OR array_to_string(books.tags, ' ') ILIKE :like OR books.notes::text ILIKE :like
+    SQL
+  }
+
   before_validation :copy_from_edition
   validates :title, presence: true, length: { maximum: 500 }
   validates :author, length: { maximum: 500 }
@@ -58,8 +66,11 @@ class Book < ApplicationRecord
         @pending_reading_dates = nil
       elsif saved_change_to_status? && status_read? && readings.none?
         readings.create!(finished_on: Date.current)
+      else
+        return
       end
       readings.reset
+      update_column(:last_read_on, readings.maximum(:finished_on))
     end
 
     def notes_shape

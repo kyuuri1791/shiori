@@ -42,7 +42,7 @@ class AiEditionResolver
 
     def volume_search(containing, core)
       starting = containing.where("editions.title ILIKE ?", "#{Edition.sanitize_sql_like(core)}%")
-      found = starting.where("editions.title ~ ?", volume_pattern).order(volume_right_after(core), *ranking(core), *volume_order(core, :asc)).limit(LIMIT).to_a
+      found = starting.where("editions.title ~ ?", volume_pattern).order(volume_right_after(core), *ranking(core), volume_order(core, :asc)).limit(LIMIT).to_a
       return found if found.any?
 
       series = starting.where("editions.title ~* ?", main_volume_pattern(core)).order(bundle_last, Arel.sql("editions.published_on ASC NULLS LAST"), :id)
@@ -58,8 +58,8 @@ class AiEditionResolver
 
     def ordered(relation, core)
       case @target
-      when "latest" then relation.order(*ranking(core), Arel.sql("editions.published_on DESC NULLS LAST"), *volume_order(core, :desc), id: :desc)
-      when "first" then relation.order(*ranking(core), Arel.sql("editions.published_on ASC NULLS LAST"), *volume_order(core, :asc), :id)
+      when "latest" then relation.order(*ranking(core), Arel.sql("editions.published_on DESC NULLS LAST"), volume_order(core, :desc), id: :desc)
+      when "first" then relation.order(*ranking(core), Arel.sql("editions.published_on ASC NULLS LAST"), volume_order(core, :asc), :id)
       else relation.order(*ranking(core), *[ Edition.author_first(@author), Arel.sql(Edition.sanitize_sql_array([ "similarity(editions.title, ?) DESC", core ])), :id ].compact)
       end
     end
@@ -80,8 +80,10 @@ class AiEditionResolver
     end
 
     def volume_order(core, direction)
-      number = "substring(translate(substring(editions.title from ?), ?, '0123456789') from '([0-9]+)[^0-9]*$')::numeric"
-      [ Arel.sql(Edition.sanitize_sql_array([ "#{number} #{direction == :desc ? 'DESC' : 'ASC'} NULLS LAST", core.length + 1, FULL_WIDTH_DIGITS ])) ]
+      Arel.sql(Edition.sanitize_sql_array([
+        "substring(translate(substring(editions.title from ?), ?, '0123456789') from '([0-9]+)[^0-9]*$')::numeric #{direction == :desc ? "DESC" : "ASC"} NULLS LAST",
+        core.length + 1, FULL_WIDTH_DIGITS
+      ]))
     end
 
     def main_volume_pattern(core)
