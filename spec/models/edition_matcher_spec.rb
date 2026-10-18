@@ -64,6 +64,14 @@ RSpec.describe EditionMatcher do
     end
   end
 
+  context "読み取った書名に版の表記が付いているとき" do
+    let!(:items) { [ described_class.item(title: "火車 新装版"), described_class.item(title: "こころ 第2版") ] }
+
+    it "版の表記を除いて一致とみなす" do
+      expect(matches.map(&:close_edition_ids)).to eq [ [ kasha.id ], [ kokoro.id ] ]
+    end
+  end
+
   context "件数が上限を超えるとき" do
     let!(:items) { Array.new(described_class::MAX_ITEMS + 1) { described_class.item(title: "火車") } }
 

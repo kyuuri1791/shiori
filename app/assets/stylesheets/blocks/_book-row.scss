@@ -2,7 +2,7 @@
 
 .book-row {
   display: grid;
-  grid-template-columns: 22px 32px minmax(0, 1fr) auto;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
   gap: 4px 12px;
   align-items: center;
   padding: 10px 14px;
@@ -17,23 +17,8 @@
     background: var(--paper);
   }
 
-  &--selected {
-    background: var(--accent-soft);
-  }
-
   &--open {
     box-shadow: inset 3px 0 0 var(--accent);
-  }
-
-  &__check {
-    width: 17px;
-    height: 17px;
-    accent-color: var(--accent);
-    cursor: pointer;
-  }
-
-  &__check-space {
-    width: 17px;
   }
 
   &__main {
@@ -89,10 +74,10 @@
   }
 
   @include mixins.narrow {
-    grid-template-columns: 22px 32px minmax(0, 1fr);
+    grid-template-columns: 32px minmax(0, 1fr);
 
     &__side {
-      grid-column: 3;
+      grid-column: 2;
       justify-content: flex-start;
     }
   }

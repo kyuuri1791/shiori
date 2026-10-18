@@ -7,7 +7,7 @@ module Api
       return render_error("一度に照合できるのは#{EditionMatcher::MAX_ITEMS}件までです", :unprocessable_content) if items.size > EditionMatcher::MAX_ITEMS
 
       items = items.map { EditionMatcher.item(**it.permit(:title, :author, :isbn, :volume).to_h.symbolize_keys) }
-      matches = EditionMatcher.new(Current.user.books).call(items)
+      matches = EditionMatcher.new(current_user.books).call(items)
       render json: {
         matches: matches.map do |match|
           { isbn13: match.isbn13, candidates: match.candidates.map { it.as_card_json.merge(owned: match.owned_edition_ids.include?(it.id), close: match.close_edition_ids.include?(it.id)) } }

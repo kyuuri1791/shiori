@@ -1,4 +1,4 @@
-module ShelfPagination
+module ShelfPaginatable
   extend ActiveSupport::Concern
 
   PER_PAGE = 20
@@ -9,7 +9,7 @@ module ShelfPagination
 
   private
     def shelf_page
-      shelf_page_for(Current.user.books)
+      shelf_page_for(current_user.books)
     end
 
     def shelf_page_for(books)
@@ -24,6 +24,6 @@ module ShelfPagination
     end
 
     def viewer_props(mode:, owner: nil)
-      { mode:, owner_id: owner&.id, signed_in: Current.user.present?, is_owner: Current.user.present? && Current.user == owner }
+      { mode:, owner_id: owner&.id, signed_in: current_user.present?, is_owner: current_user.present? && current_user == owner }
     end
 end

@@ -28,7 +28,7 @@ function sleep(ms: number, signal: AbortSignal): Promise<void> {
 const isAbort = (error: unknown): boolean => error instanceof DOMException && error.name === "AbortError"
 const messageOf = (error: unknown): string => (error instanceof Error ? error.message : "AI検索がうまくいきませんでした")
 
-export const TARGET_LABEL: Record<AiTarget, string> = { latest: "の最新刊", first: "の1巻", volume: "", any: "" }
+export const TARGET_LABEL: Record<AiTarget, string> = { latest: "の最新刊", first: "の1巻", volume: "", all: "の全巻", any: "" }
 
 export const isGuess = (interpretation: AiInterpretation | null): boolean =>
   !!interpretation && interpretation.titles.length === 0 && (interpretation.guesses?.length ?? 0) > 0

@@ -2,8 +2,6 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  max-height: min(60vh, 520px);
-  overflow-y: auto;
   border: 1px solid var(--line);
   border-radius: 8px;
 
@@ -39,6 +37,11 @@
     font-size: 13px;
     color: var(--muted);
     overflow-wrap: anywhere;
+
+    &--title {
+      font-size: 15px;
+      color: var(--ink);
+    }
   }
 
   &__select {
@@ -57,9 +60,5 @@
     &--error {
       color: var(--stamp);
     }
-  }
-
-  &__actions {
-    align-items: center;
   }
 }

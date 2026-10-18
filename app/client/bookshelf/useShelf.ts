@@ -21,7 +21,7 @@ function syncUrl(filters: Filters): void {
   window.history.replaceState(null, "", search ? `?${search}` : window.location.pathname)
 }
 
-export default function useShelf(initial: ShelfPage, fetchShelf: FetchShelf, onFiltersChanged?: () => void) {
+export default function useShelf(initial: ShelfPage, fetchShelf: FetchShelf) {
   const [shelf, setShelf] = useState<Shelf>({ books: initial.books, page: initial.page, facets: initial.facets })
   const [filters, setFilters] = useState<Filters>(initial.filters)
   const [query, setQuery] = useState(initial.filters.q)
@@ -57,7 +57,6 @@ export default function useShelf(initial: ShelfPage, fetchShelf: FetchShelf, onF
   useEffect(() => {
     syncUrl(filters)
     if (firstRender.current) { firstRender.current = false; return }
-    onFiltersChanged?.()
     load(filters)
   }, [filters])
 

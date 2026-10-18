@@ -1,8 +1,10 @@
 class AiEditionResolver
   LIMIT = 10
+  SERIES_LIMIT = 100
+  SERIES_FETCH_LIMIT = 300
   TRAILING_SYMBOLS = /[!?！？・~〜\s]+\z/
   FULL_WIDTH_DIGITS = "０１２３４５６７８９".freeze
-  MAIN_VOLUME_TAIL = "[[:space:]]*($|[:：]|[!！?？・.,、#＃(（\\[［第巻[:space:]]*[0-9０-９上中下])".freeze
+  MAIN_VOLUME_TAIL = "[[:space:]]*(\\([^)]*\\)|（[^）]*）)?[[:space:]]*($|[:：]|[!！?？・.,、#＃(（\\[［第巻[:space:]]*[0-9０-９上中下])".freeze
   SERIES_BOUNDARY = "($|[[:space:]:：.,、・!！?？#＃(（\\[［<＜〈「『/／_-]|[0-9０-９])".freeze
   BUNDLE_PATTERN = "(セット|パック|BOX|ボックス|全巻|[0-9０-９]+[[:space:]]*巻?[[:space:]]*[～〜~][[:space:]]*[0-9０-９]+)".freeze
 
@@ -16,6 +18,7 @@ class AiEditionResolver
 
   def editions
     return guessed_editions if @titles.empty?
+    return series_editions if @target == "all"
 
     @titles.each do |title|
       found = search(title)
@@ -30,8 +33,37 @@ class AiEditionResolver
         .uniq(&:id).first(LIMIT)
     end
 
+    def series_editions
+      @titles.flat_map { series(it) }.uniq(&:id).first(SERIES_LIMIT)
+    end
+
+    def series(title)
+      core = normalize(title)
+      found = series_volumes(core)
+      found.empty? && core.match?(/\s/) ? series_volumes(core.gsub(/\s+/, "")) : found
+    end
+
+    def series_volumes(core)
+      return [] if core.length < 2
+
+      Edition.where("editions.title ILIKE ?", "#{Edition.sanitize_sql_like(core)}%")
+        .where("editions.title ~* ?", main_volume_pattern(core))
+        .where.not("editions.title ~* ?", BUNDLE_PATTERN)
+        .order(volume_order(core, :asc, nulls: :first), Arel.sql("editions.published_on ASC NULLS LAST"), :id)
+        .limit(SERIES_FETCH_LIMIT)
+        .uniq { [ volume_number(it.title, core), it.published_on.to_s.first(7) ] }
+    end
+
+    def volume_number(title, core)
+      title.unicode_normalize(:nfkc)[core.length..].to_s[/\d+/]&.to_i
+    end
+
+    def normalize(title)
+      title.to_s.unicode_normalize(:nfkc).sub(TRAILING_SYMBOLS, "").strip
+    end
+
     def search(title)
-      core = title.to_s.unicode_normalize(:nfkc).sub(TRAILING_SYMBOLS, "").strip
+      core = normalize(title)
       return [] if core.length < 2
 
       containing = Edition.where("editions.title ILIKE ?", "%#{Edition.sanitize_sql_like(core)}%")
@@ -79,9 +111,9 @@ class AiEditionResolver
       Arel.sql(Edition.sanitize_sql_array([ "(editions.title ~* ?) ASC", BUNDLE_PATTERN ]))
     end
 
-    def volume_order(core, direction)
+    def volume_order(core, direction, nulls: :last)
       Arel.sql(Edition.sanitize_sql_array([
-        "substring(translate(substring(editions.title from ?), ?, '0123456789') from '([0-9]+)[^0-9]*$')::numeric #{direction == :desc ? "DESC" : "ASC"} NULLS LAST",
+        "substring(translate(substring(editions.title from ?), ?, '0123456789') from '([0-9]+)')::numeric #{direction == :desc ? "DESC" : "ASC"} NULLS #{nulls == :first ? "FIRST" : "LAST"}",
         core.length + 1, FULL_WIDTH_DIGITS
       ]))
     end

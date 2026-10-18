@@ -1,11 +1,11 @@
-module Authentication
+module Authenticatable
   extend ActiveSupport::Concern
 
   SESSION_TOUCH_INTERVAL = 1.hour
 
   included do
     before_action :require_authentication
-    helper_method :authenticated?
+    helper_method :authenticated?, :current_user
   end
 
   class_methods do
@@ -15,20 +15,23 @@ module Authentication
   end
 
   private
+    def current_user
+      @current_user = resume_session unless defined?(@current_user)
+      @current_user
+    end
+
     def authenticated?
-      resume_session
+      current_user.present?
     end
 
     def require_authentication
-      resume_session || request_authentication
+      current_user || request_authentication
     end
 
     def resume_session
-      return Current.user if Current.user
-
       if (user = user_from_session)
         session[:last_seen_at] = Time.current.to_i if session[:last_seen_at].to_i < SESSION_TOUCH_INTERVAL.ago.to_i
-        Current.user = user
+        user
       elsif session[:user_id]
         reset_session
         nil
@@ -62,12 +65,12 @@ module Authentication
       session[:user_id] = user.id
       session[:auth_token] = session_token_for(user)
       session[:last_seen_at] = Time.current.to_i
-      Current.user = user
+      @current_user = user
       return_to
     end
 
     def terminate_session
       reset_session
-      Current.user = nil
+      @current_user = nil
     end
 end

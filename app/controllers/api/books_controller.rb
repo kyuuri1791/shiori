@@ -1,40 +1,40 @@
 module Api
   class BooksController < ApplicationController
-    include ShelfPagination
-
-    MAX_OPS = 100
+    include ShelfPaginatable
 
     def index
       render json: shelf_page
     end
 
-    def batch(ops)
-      raise ActionController::BadRequest, "ops must be an array" unless ops.is_a?(Array) && ops.all?(ActionController::Parameters)
-      return render_error("一度に操作できるのは#{MAX_OPS}件までです", :content_too_large) if ops.size > MAX_OPS
+    def create(book)
+      created = current_user.books.new(book_attributes(book))
+      if created.save
+        render json: { book: created.as_card_json }, status: :created
+      else
+        render_error(created.errors.full_messages.to_sentence, :unprocessable_content)
+      end
+    end
 
-      books = Book.transaction { ops.map { apply(it) } }
-      render json: { books: books.map(&:as_card_json) }
-    rescue ActiveRecord::RecordInvalid => e
-      render_error(e.record.errors.full_messages.to_sentence, :unprocessable_content)
-    rescue ActiveRecord::RecordNotUnique
-      render_error("すでに本棚にある本です", :conflict)
+    def update(id, book)
+      found = current_user.books.find(id)
+      if found.update(book_attributes(book))
+        render json: { book: found.as_card_json }
+      else
+        render_error(found.errors.full_messages.to_sentence, :unprocessable_content)
+      end
+    end
+
+    def destroy(id)
+      found = current_user.books.find(id)
+      found.discard!
+      render json: { book: found.as_card_json }
     end
 
     private
-      def apply(op)
-        case op[:op]
-        when "create"  then Current.user.books.create!(book_attributes(op[:attributes]))
-        when "update"  then Current.user.books.find(op[:id]).tap { it.update!(book_attributes(op[:attributes])) }
-        when "destroy" then Current.user.books.find(op[:id]).tap(&:discard!)
-        else raise ActionController::BadRequest, "unknown op: #{op[:op]}"
-        end
-      end
-
-      def book_attributes(attributes)
-        (attributes || ActionController::Parameters.new)
-          .permit(:title, :author, :status, :rating, :review, :edition_id, :isbn13, tags: [], notes: [ :t, :text ], reading_dates: [])
-          .to_h
-          .tap { |h| h["notes"] = h["notes"].map { { "t" => it["t"].to_i, "text" => it["text"].to_s } } if h.key?("notes") }
+      def book_attributes(book)
+        permitted = book.permit(:title, :author, :status, :rating, :review, :edition_id, :isbn13, tags: [], notes: [ :t, :text ], reading_dates: []).to_h
+        permitted["notes"] = permitted["notes"].map { { "t" => it["t"].to_i, "text" => it["text"].to_s } } if permitted.key?("notes")
+        permitted
       end
   end
 end

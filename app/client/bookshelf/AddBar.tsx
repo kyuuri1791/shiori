@@ -9,7 +9,8 @@ type Mode = "ai" | "keyword"
 const MODES: Record<Mode, string> = { ai: "AIで探す", keyword: "キーワードで探す" }
 const MODE_KEYS = Object.keys(MODES) as Mode[]
 const EMPTY_FORM = { title: "", author: "", isbn: "" }
-const AI_QUERY_MAX_LENGTH = 100
+export const AI_QUERY_MAX_LENGTH = 100
+const AI_SUGGEST_LIMIT = 10
 
 const isMode = (value: string | null): value is Mode => value === "ai" || value === "keyword"
 
@@ -28,7 +29,7 @@ type FormProps = {
   canUseAi: boolean
   notice: ReactNode
   searcher: Searcher
-  onAddText: (items: ParsedLine[]) => Promise<boolean>
+  onAddText: (item: ParsedLine) => Promise<boolean>
   onAddEdition: (edition: Edition) => Promise<boolean>
   onAddIsbn: (isbn: string) => Promise<boolean>
   registerSubmit: (submit: () => void) => void
@@ -66,8 +67,9 @@ function AiForm({ busy, canUseAi, notice, onAddText, onAddEdition, onAddIsbn, re
     else if (single) { setOpen(true); ai.start(single) }
   }
 
-  const keys = useListKeys(ai.state.editions, open, setOpen, submit)
-  registerSubmit(() => submit(ai.state.editions[keys.active] ?? null))
+  const editions = ai.state.editions.slice(0, AI_SUGGEST_LIMIT)
+  const keys = useListKeys(editions, open, setOpen, submit)
+  registerSubmit(() => submit(editions[keys.active] ?? null))
 
   let header: ReactNode = null
   if (ai.state.status === "pending") header = <span role="status"><span className="spinner" aria-hidden="true" /> AI が探しています…</span>
@@ -78,7 +80,7 @@ function AiForm({ busy, canUseAi, notice, onAddText, onAddEdition, onAddIsbn, re
   const footer = ai.state.status !== "idle" && ai.state.status !== "pending" && single ? (
     <button
       className="button button--link" type="button"
-      onMouseDown={e => { e.preventDefault(); onAddText([{ title: single, author: "", tags: [] }]).then(done) }}
+      onMouseDown={e => { e.preventDefault(); onAddText({ title: single, author: "", tags: [] }).then(done) }}
     >見つからないときは『{single}』をそのまま登録</button>
   ) : null
 
@@ -99,7 +101,7 @@ function AiForm({ busy, canUseAi, notice, onAddText, onAddEdition, onAddIsbn, re
       {open && single && ai.state.status !== "idle" && (
         <EditionSuggest
           floating
-          search={ai.state.status === "pending" ? IDLE_SEARCH : { editions: ai.state.editions, loading: false, error: null, searched: ai.state.query }}
+          search={ai.state.status === "pending" ? IDLE_SEARCH : { editions, loading: false, error: null, searched: ai.state.query }}
           activeIndex={keys.active}
           header={header}
           footer={footer}
@@ -132,7 +134,7 @@ function KeywordForm({ busy, canRegister, notice, searcher, onAddText, onAddEdit
     if (!canRegister) { if (picked) openExternally(picked); return }
     if (picked) onAddEdition(picked).then(done)
     else if (form.isbn.trim()) onAddIsbn(form.isbn).then(done)
-    else if (title) onAddText([{ title, author: form.author.trim(), tags: [] }]).then(done)
+    else if (title) onAddText({ title, author: form.author.trim(), tags: [] }).then(done)
   }
 
   const keys = useListKeys(search.editions, open, setOpen, submit)
@@ -189,7 +191,7 @@ type Props = {
   searcher: Searcher
   addStatus: Status
   onAddStatus: (status: Status) => void
-  onAddText: (items: ParsedLine[]) => Promise<boolean>
+  onAddText: (item: ParsedLine) => Promise<boolean>
   onAddEdition: (edition: Edition, tags: string[]) => Promise<boolean>
   onAddIsbn: (isbn: string) => Promise<boolean>
   onScan: () => void

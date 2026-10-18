@@ -9,8 +9,24 @@ const MAX_WAIT_MS = 90000
 
 export type ShelfPhotoState = { status: "idle" | "reading"; error: string | null }
 
+const UNREADABLE = "この写真は読み込めませんでした。JPEG・PNG・HEIC の写真を選んでください"
+
+async function decode(file: File): Promise<ImageBitmap> {
+  try {
+    return await createImageBitmap(file, { imageOrientation: "from-image" })
+  } catch {
+    const { heicTo, isHeic } = await import("heic-to")
+    if (!(await isHeic(file))) throw new Error(UNREADABLE)
+    try {
+      return await heicTo({ blob: file, type: "bitmap", options: { imageOrientation: "from-image" } })
+    } catch {
+      throw new Error(UNREADABLE)
+    }
+  }
+}
+
 async function shrink(file: File): Promise<Blob> {
-  const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" })
+  const bitmap = await decode(file)
   const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height))
   const canvas = document.createElement("canvas")
   canvas.width = Math.round(bitmap.width * scale)

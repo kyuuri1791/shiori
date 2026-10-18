@@ -1,0 +1,43 @@
+<div class="page">
+  <%= render "bulk_imports/header" %>
+  <section class="bulk-import" aria-labelledby="bulk-import-title">
+    <h2 class="bulk-import__title" id="bulk-import-title"><%= bulk_import_title %></h2>
+    <%= render "bulk_imports/steps", current: :confirm %>
+    <% if @form.errors.any? %>
+      <div class="banner" role="alert">
+        <% @form.errors.full_messages.each do |message| %>
+          <div><%= message %></div>
+        <% end %>
+      </div>
+    <% end %>
+    <%= form_with url: url_for(action: :create), method: :post, class: "bulk-import__confirm" do %>
+      <% @books_attributes.each_with_index do |attributes, index| %>
+        <% attributes.except("tags").each do |key, value| %>
+          <%= hidden_field_tag "books[#{index}][#{key}]", value, id: nil %>
+        <% end %>
+        <% Array(attributes["tags"]).each do |tag| %>
+          <%= hidden_field_tag "books[#{index}][tags][]", tag, id: nil %>
+        <% end %>
+      <% end %>
+      <p class="bulk-import__lead">次の<%= @form.books.size %>冊を登録します。登録するときの状態を選んでください。</p>
+      <label class="bulk-import__status">
+        <span>登録するときの状態</span>
+        <%= select_tag :status, bulk_import_status_options(@status), class: "bulk-import__select" %>
+      </label>
+      <ol class="bulk-review">
+        <% @form.books.each do |book| %>
+          <li class="bulk-review__item">
+            <div class="bulk-review__body">
+              <div class="bulk-review__source bulk-review__source--title"><%= book.title.presence || "ISBN #{book.isbn13}" %></div>
+              <span class="bulk-review__note"><%= bulk_import_book_detail(book) %></span>
+            </div>
+          </li>
+        <% end %>
+      </ol>
+      <div class="bulk-import__actions">
+        <button class="button" type="button" onclick="history.back()">戻る</button>
+        <%= button_tag "#{@form.books.size}冊を登録する", class: "button button--primary", disabled: @form.errors.any? %>
+      </div>
+    <% end %>
+  </section>
+</div>

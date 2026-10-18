@@ -43,4 +43,18 @@ RSpec.describe "Users" do
 
     expect(response.body.scan(%(class="user-list__item")).size).to eq 1
   end
+
+  describe "本棚の公開ページ" do
+    it "ログインしていなくても見られ、検索エンジンには載せない" do
+      get user_path(active)
+
+      expect([ response.status, response.headers["X-Robots-Tag"] ]).to eq [ 200, "noindex, nofollow" ]
+    end
+
+    it "公開の API で、その人の本の一覧を取れる" do
+      get api_public_user_books_path(active), as: :json
+
+      expect(response.parsed_body["books"].size).to eq 2
+    end
+  end
 end

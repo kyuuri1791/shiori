@@ -22,6 +22,7 @@ class Book < ApplicationRecord
 
   before_validation :copy_from_edition
   validates :title, presence: true, length: { maximum: 500 }
+  validate :not_on_shelf_yet
   validates :author, length: { maximum: 500 }
   validates :rating, inclusion: { in: 0..5 }
   validate :notes_shape
@@ -71,6 +72,14 @@ class Book < ApplicationRecord
       end
       readings.reset
       update_column(:last_read_on, readings.maximum(:finished_on))
+    end
+
+    def not_on_shelf_yet
+      return unless user && (edition_id || isbn13)
+
+      others = user.books.where.not(id:)
+      duplicated = (edition_id && others.exists?(edition_id:)) || (isbn13 && others.exists?(isbn13:))
+      errors.add(:base, "すでに本棚にある本です") if duplicated
     end
 
     def notes_shape

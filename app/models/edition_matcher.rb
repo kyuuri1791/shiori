@@ -4,6 +4,7 @@ class EditionMatcher
   MAX_TEXT_LENGTH = 200
   ISBN_LIKE = /\A[0-9０-９Xx\-－\s]+\z/
   IGNORED_CHARACTERS = /[[:space:][:punct:]・、。「」『』（）]/
+  EDITION_NOTE = /(第[0-9一二三四五六七八九十]+版|新装改訂版|増補改訂版|改訂新版|新装版|改訂版|増補版|新版|完全版|愛蔵版|決定版|文庫版)\z/
 
   Item = Data.define(:title, :author, :isbn, :volume)
   Match = Data.define(:isbn13, :candidates, :owned_edition_ids, :close_edition_ids)
@@ -35,7 +36,7 @@ class EditionMatcher
 
   private
     def close_title?(edition_title, query)
-      wanted = comparable(query)
+      wanted = comparable(query).sub(EDITION_NOTE, "")
       wanted.present? && comparable(edition_title).include?(wanted)
     end
 

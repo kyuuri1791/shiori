@@ -4,7 +4,7 @@ module Api
 
     def search(q: "", author: "")
       editions = Edition.suggest(q.to_s.first(BookQuery::MAX_TEXT_LENGTH), author: author.to_s.first(BookQuery::MAX_TEXT_LENGTH))
-      owned = Current.user.books.where(edition_id: editions.map(&:id)).pluck(:edition_id).to_set
+      owned = current_user.books.where(edition_id: editions.map(&:id)).pluck(:edition_id).to_set
       render json: { editions: editions.map { it.as_card_json.merge(owned: owned.include?(it.id)) } }
     end
 
@@ -20,7 +20,7 @@ module Api
 
     private
       def owned_books(isbn, edition)
-        books = Current.user.books
+        books = current_user.books
         by_isbn = books.where(isbn13: isbn.to_s)
         edition ? by_isbn.or(books.where(edition_id: edition.id)) : by_isbn
       end

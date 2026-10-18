@@ -1,15 +1,19 @@
 class UsersController < ApplicationController
-  include Pagy::Method
+  include ShelfPaginatable
 
   PER_PAGE = 20
 
   allow_unauthenticated_access
   rate_limit to: 60, within: 1.minute, with: -> { head :too_many_requests }
-  before_action :resume_session
   after_action { response.headers["X-Robots-Tag"] = "noindex, nofollow" }
 
   def index
     pagy, @users = pagy(:offset, User.with_shelf_summary, limit: PER_PAGE)
     @page = pagy.data_hash(data_keys: %i[count page last previous next from to series])
+  end
+
+  def show(id)
+    owner = User.find(id)
+    @props = shelf_page_for(owner.books).merge(viewer: viewer_props(mode: "readonly", owner:))
   end
 end

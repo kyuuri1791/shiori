@@ -4,15 +4,11 @@ import { NEXT_STATUS, STATUS, normalizeIsbn } from "./text"
 import ShelfControls from "./ShelfControls"
 import useShelf from "./useShelf"
 import BookDetail from "./BookDetail"
-import type { AddResult, BatchOp, Book, BookAttributes, BookshelfPage, Edition, Filters, ParsedLine, ShelfPage, Status, ToastState } from "./types"
+import type { AddResult, Book, BookAttributes, BookshelfPage, Edition, Filters, ParsedLine, ShelfPage, Status, ToastState } from "./types"
 import AddBar from "./AddBar"
 import BookList from "./BookList"
-import BulkImport from "./BulkImport"
-import BulkReview, { MAX_BULK_LINES } from "./BulkReview"
-import PhotoReading from "./PhotoReading"
-import useShelfPhotoScan from "./useShelfPhotoScan"
+import BulkImportMenu from "./BulkImportMenu"
 import { GUEST_SAMPLE_BOOK } from "./guestSample"
-import BulkBar from "./BulkBar"
 import Drawer from "./Drawer"
 import Pager from "./Pager"
 import Toast, { UNDO_WINDOW_MS } from "./Toast"
@@ -40,10 +36,8 @@ function loadAddStatus(): Status {
 }
 
 type EditableKey = keyof BookAttributes
-type UndoEntry = { label: string; ops: BatchOp[] } | { label: string; pendingDelete: number }
-type PendingDelete = { ids: number[]; timer: ReturnType<typeof setTimeout> }
-type Patch = { id: number; attributes: BookAttributes }
-type ChangedPatch = Patch & { before: Book }
+type UndoEntry = { label: string; revert: () => Promise<Book | null> } | { label: string; pendingDelete: number }
+type PendingDelete = { id: number; timer: ReturnType<typeof setTimeout> }
 
 const pick = (book: Book, keys: EditableKey[]): BookAttributes =>
   Object.fromEntries(keys.map(k => [k, book[k]])) as BookAttributes
@@ -62,17 +56,14 @@ const csrfToken = (): string => document.querySelector<HTMLMetaElement>('meta[na
 export default function App({ initial }: { initial: BookshelfPage }) {
   const { viewer } = initial
   const canEdit = viewer.mode === "owner"
-  const [selected, setSelected] = useState<Set<number>>(() => new Set())
   const { shelf, setShelf, shelfRef, filtersRef, filters, changeFilters, query, setQuery, loading, error, setError, load } =
-    useShelf(initial, shelfFetcher(initial), () => setSelected(new Set()))
+    useShelf(initial, shelfFetcher(initial))
   const [openBook, setOpenBook] = useState<Book | null>(null)
   const [addStatus, setAddStatus] = useState<Status>(loadAddStatus)
   const [scanning, setScanning] = useState(false)
   const [importing, setImporting] = useState(false)
-  const [review, setReview] = useState<{ lines: ParsedLine[]; truncated: number } | null>(null)
   const [toast, setToast] = useState<ToastState | null>(null)
   const openBookRef = useRef(openBook)
-  const lastClicked = useRef<number | null>(null)
   const undoStack = useRef<UndoEntry[]>([])
   const pendingDeletes = useRef(new Map<number, PendingDelete>())
   const nextDeleteToken = useRef(1)
@@ -89,45 +80,26 @@ export default function App({ initial }: { initial: BookshelfPage }) {
     return shelfRef.current.books.find(b => b.id === id)
   }
 
-  function applyResults(results: Book[]): void {
-    const byId = new Map(results.map(b => [b.id, b]))
-    setShelf(s => ({
-      ...s,
-      books: s.books.flatMap(b => {
-        const updated = byId.get(b.id)
-        if (!updated) return [b]
-        return updated.discarded ? [] : [updated]
-      }),
-    }))
-    setOpenBook(current => {
-      const updated = current && byId.get(current.id)
-      if (!updated) return current
-      return updated.discarded ? null : updated
-    })
+  function showSaved(book: Book): void {
+    setShelf(s => ({ ...s, books: book.discarded ? s.books.filter(b => b.id !== book.id) : s.books.map(b => (b.id === book.id ? book : b)) }))
+    setOpenBook(current => (current?.id === book.id ? (book.discarded ? null : book) : current))
   }
 
   const notify = (message: string, undoable = false) => setToast({ message, undoable, key: Date.now() })
 
-  function pushUndo(label: string, ops: BatchOp[]): void {
-    undoStack.current.push({ label, ops })
+  function pushUndo(entry: UndoEntry): void {
+    undoStack.current.push(entry)
     if (undoStack.current.length > 50) undoStack.current.shift()
-    notify(label, true)
+    notify(entry.label, true)
   }
 
-  async function perform(
-    label: string | null,
-    ops: BatchOp[],
-    undoOps: ((results: Book[]) => BatchOp[]) | null,
-    { reload = true }: { reload?: boolean } = {},
-  ): Promise<Book[] | null> {
-    if (!ops.length) return null
+  async function save(request: () => Promise<Book>, { reload = true }: { reload?: boolean } = {}): Promise<Book | null> {
     try {
-      const results = await api.batch(ops)
-      applyResults(results)
+      const book = await request()
+      showSaved(book)
       setError(null)
-      if (label && undoOps) pushUndo(label, undoOps(results))
       if (reload) load()
-      return results
+      return book
     } catch (e) {
       setError(messageOf(e))
       return null
@@ -142,30 +114,27 @@ export default function App({ initial }: { initial: BookshelfPage }) {
       if (!pending) { notify("取り消せる操作はありません"); return }
       clearTimeout(pending.timer)
       pendingDeletes.current.delete(entry.pendingDelete)
-      unhide(pending.ids)
+      unhide(pending.id)
       notify(`「${entry.label}」を取り消しました`)
       return
     }
-    if (await perform(null, entry.ops, null)) notify(`「${entry.label}」を取り消しました`)
+    if (await entry.revert()) notify(`「${entry.label}」を取り消しました`)
   }
 
-  function unhide(ids: number[]): void {
+  function unhide(id: number): void {
     setHiddenIds(prev => {
       const next = new Set(prev)
-      ids.forEach(id => next.delete(id))
+      next.delete(id)
       return next
     })
   }
 
-  function destroyBooks(ids: number[], label: string): void {
-    if (!ids.length) return
+  function deleteBook(id: number, label: string): void {
     const token = nextDeleteToken.current++
-    setHiddenIds(prev => new Set([...prev, ...ids]))
-    setOpenBook(current => (current && ids.includes(current.id) ? null : current))
-    pendingDeletes.current.set(token, { ids, timer: setTimeout(() => commitDeleteRef.current(token), UNDO_WINDOW_MS) })
-    undoStack.current.push({ label, pendingDelete: token })
-    if (undoStack.current.length > 50) undoStack.current.shift()
-    notify(label, true)
+    setHiddenIds(prev => new Set([...prev, id]))
+    setOpenBook(current => (current?.id === id ? null : current))
+    pendingDeletes.current.set(token, { id, timer: setTimeout(() => commitDeleteRef.current(token), UNDO_WINDOW_MS) })
+    pushUndo({ label, pendingDelete: token })
   }
 
   async function commitDelete(token: number, { keepalive = false }: { keepalive?: boolean } = {}): Promise<void> {
@@ -174,16 +143,12 @@ export default function App({ initial }: { initial: BookshelfPage }) {
     clearTimeout(pending.timer)
     pendingDeletes.current.delete(token)
     undoStack.current = undoStack.current.filter(entry => !("pendingDelete" in entry && entry.pendingDelete === token))
-    try {
-      await api.batch(pending.ids.map((id): BatchOp => ({ op: "destroy", id })), { keepalive })
-      if (keepalive) return
-      setShelf(s => ({ ...s, books: s.books.filter(b => !pending.ids.includes(b.id)) }))
-      load()
-    } catch (e) {
-      setError(messageOf(e))
-    } finally {
-      unhide(pending.ids)
+    if (keepalive) {
+      api.destroyBook(pending.id, { keepalive }).catch(() => {})
+      return
     }
+    await save(() => api.destroyBook(pending.id))
+    unhide(pending.id)
   }
   const commitDeleteRef = useRef(commitDelete)
   commitDeleteRef.current = commitDelete
@@ -200,51 +165,50 @@ export default function App({ initial }: { initial: BookshelfPage }) {
     if (f.page !== 1 || status !== f.status) changeFilters({ status })
   }
 
-  async function createBooks(items: BookAttributes[], label: string): Promise<Book[] | null> {
-    const results = await perform(
-      label,
-      items.map((attributes): BatchOp => ({ op: "create", attributes })),
-      rs => rs.map((b): BatchOp => ({ op: "destroy", id: b.id })),
-    )
-    if (results) showCreated()
-    return results
+  async function createBook(attributes: BookAttributes, label: string): Promise<Book | null> {
+    const book = await save(() => api.createBook(attributes))
+    if (!book) return null
+    pushUndo({ label, revert: () => save(() => api.destroyBook(book.id)) })
+    showCreated()
+    return book
   }
 
-  function updateBooks(patches: Patch[], label: string | ((changed: ChangedPatch[]) => string)): Promise<Book[] | null> {
-    const changed = patches.flatMap((p): ChangedPatch[] => {
-      const before = findBook(p.id)
-      if (!before) return []
-      const differs = (Object.keys(p.attributes) as EditableKey[]).some(k => !sameValue(before[k], p.attributes[k]))
-      return differs ? [{ ...p, before }] : []
-    })
-    const text = typeof label === "function" ? label(changed) : label
-    return perform(text, changed.map((p): BatchOp => ({ op: "update", id: p.id, attributes: p.attributes })), () =>
-      changed.map((p): BatchOp => {
-        const keys = Object.keys(p.attributes) as EditableKey[]
-        if (keys.includes("status") && !keys.includes("reading_dates")) keys.push("reading_dates")
-        return { op: "update", id: p.id, attributes: pick(p.before, keys) }
-      }))
+  async function createBooksInBulk(items: BookAttributes[], label: string): Promise<boolean> {
+    try {
+      await api.createBooksInBulk(items)
+    } catch (e) {
+      setError(messageOf(e))
+      return false
+    }
+    setError(null)
+    notify(label)
+    showCreated()
+    load()
+    return true
   }
 
-  const setStatus = (ids: number[], status: Status) =>
-    updateBooks(ids.map(id => ({ id, attributes: { status } })), changed => {
-      const first = changed[0]
-      return changed.length === 1 && first ? `『${first.before.title}』を「${STATUS[status]}」にしました` : `${changed.length}冊を「${STATUS[status]}」にしました`
-    })
+  async function updateBook(id: number, attributes: BookAttributes, label: string): Promise<Book | null> {
+    const before = findBook(id)
+    const keys = Object.keys(attributes) as EditableKey[]
+    if (!before || keys.every(k => sameValue(before[k], attributes[k]))) return null
+    const book = await save(() => api.updateBook(id, attributes))
+    if (!book) return null
+    if (keys.includes("status") && !keys.includes("reading_dates")) keys.push("reading_dates")
+    const previous = pick(before, keys)
+    pushUndo({ label, revert: () => save(() => api.updateBook(id, previous)) })
+    return book
+  }
 
-  const openReview = (lines: ParsedLine[]) =>
-    setReview({ lines: lines.slice(0, MAX_BULK_LINES), truncated: Math.max(0, lines.length - MAX_BULK_LINES) })
-
-  const photo = useShelfPhotoScan(openReview)
-  useEffect(() => { if (photo.state.error) setError(photo.state.error) }, [photo.state.error])
+  const setStatus = (book: Book, status: Status) =>
+    updateBook(book.id, { status }, `『${book.title}』を「${STATUS[status]}」にしました`)
 
   async function addEdition(edition: Edition, tags: string[] = []): Promise<AddResult> {
     if (edition.owned) {
       notify(`『${edition.title}』はもう本棚にあります`)
       return { state: "owned", title: edition.title }
     }
-    const rs = await createBooks([{ edition_id: edition.id, status: addStatus, tags }], `『${edition.title}』を登録しました`)
-    return { state: rs ? "added" : "failed", title: edition.title }
+    const book = await createBook({ edition_id: edition.id, status: addStatus, tags }, `『${edition.title}』を登録しました`)
+    return { state: book ? "added" : "failed", title: edition.title }
   }
 
   async function addIsbn(rawIsbn: string, tags: string[] = []): Promise<AddResult> {
@@ -265,25 +229,10 @@ export default function App({ initial }: { initial: BookshelfPage }) {
       return { state: "owned", title: found.owned_book.title }
     }
     if (found.edition) return addEdition({ ...found.edition, owned: false }, tags)
-    const rs = await createBooks([{ isbn13, status: addStatus, tags }], "本のマスタにないISBNなので、ISBNだけで登録しました")
-    return { state: rs ? "unmatched" : "failed", title: rs?.[0]?.title || "" }
+    const book = await createBook({ isbn13, status: addStatus, tags }, "本のマスタにないISBNなので、ISBNだけで登録しました")
+    return { state: book ? "unmatched" : "failed", title: book?.title ?? "" }
   }
 
-
-  function toggleSelect(id: number, shift: boolean): void {
-    setSelected(prev => {
-      const next = new Set(prev)
-      const anchor = lastClicked.current
-      if (shift && anchor != null) {
-        const ids = shelf.books.map(b => b.id)
-        const [a = -1, z = -1] = [ids.indexOf(anchor), ids.indexOf(id)].sort((x, y) => x - y)
-        if (a >= 0) ids.slice(a, z + 1).forEach(i => next.add(i))
-      } else if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-    lastClicked.current = id
-  }
 
   function goToPage(page: number): void {
     changeFilters({ page })
@@ -296,7 +245,6 @@ export default function App({ initial }: { initial: BookshelfPage }) {
     if (e.defaultPrevented || target?.closest("dialog")) return
     if (e.key === "Escape") {
       if (openBook) setOpenBook(null)
-      else if (selected.size) setSelected(new Set())
       return
     }
     if (target?.closest("input, textarea, select")) return
@@ -312,7 +260,6 @@ export default function App({ initial }: { initial: BookshelfPage }) {
 
   const { page, facets } = shelf
   const books = hiddenIds.size ? shelf.books.filter(b => !hiddenIds.has(b.id)) : shelf.books
-  const selectedBooks = canEdit ? books.filter(b => selected.has(b.id)) : []
   const registerNotice = viewer.signed_in
     ? <>この本棚には登録できません。<a className="link" href="/">自分の本棚</a>で登録できます</>
     : <><a className="link" href="/session/new">ログイン</a>すると、本を登録したり AI で探したりできます</>
@@ -350,11 +297,7 @@ export default function App({ initial }: { initial: BookshelfPage }) {
           searcher={viewer.signed_in ? api.searchEditions : (q, signal) => api.searchPublicEditions(q, signal)}
           addStatus={addStatus}
           onAddStatus={setAddStatus}
-          onAddText={async (items: ParsedLine[]) => {
-            const first = items[0]
-            const label = items.length === 1 && first ? `『${first.title}』を登録しました` : `${items.length}冊を登録しました`
-            return !!(await createBooks(items.map(p => ({ ...p, status: addStatus })), label))
-          }}
+          onAddText={async (item: ParsedLine) => !!(await createBook({ ...item, status: addStatus }, `『${item.title}』を登録しました`))}
           onAddEdition={async (edition, tags) => (await addEdition(edition, tags)).state !== "failed"}
           onAddIsbn={async isbn => (await addIsbn(isbn)).state !== "failed"}
           onScan={() => setScanning(true)}
@@ -368,9 +311,7 @@ export default function App({ initial }: { initial: BookshelfPage }) {
               books={[GUEST_SAMPLE_BOOK]}
               total={1}
               loading={false}
-              selected={new Set()}
               openId={openBook?.id}
-              onToggle={() => {}}
               onOpen={() => setOpenBook(GUEST_SAMPLE_BOOK)}
               onCycle={() => {}}
               onSeed={() => {}}
@@ -393,60 +334,28 @@ export default function App({ initial }: { initial: BookshelfPage }) {
               books={books}
               total={facets.counts.all}
               loading={loading}
-              selected={selected}
               openId={openBook?.id}
-              onToggle={toggleSelect}
               onOpen={id => setOpenBook(books.find(b => b.id === id) || null)}
-              onCycle={b => setStatus([b.id], NEXT_STATUS[b.status])}
-              onSeed={() => createBooks(SAMPLE_BOOKS, "見本の本を5冊入れました")}
+              onCycle={b => setStatus(b, NEXT_STATUS[b.status])}
+              onSeed={() => createBooksInBulk(SAMPLE_BOOKS, "見本の本を5冊入れました")}
             />
             <Pager page={page} onPage={goToPage} />
           </section>
         )}
       </div>
 
-      {selectedBooks.length > 0 && (
-        <BulkBar
-          count={selectedBooks.length}
-          onStatus={s => setStatus(selectedBooks.map(b => b.id), s)}
-          onTag={t => updateBooks(
-            selectedBooks.filter(b => !b.tags.includes(t)).map(b => ({ id: b.id, attributes: { tags: [...b.tags, t] } })),
-            changed => `${changed.length}冊に #${t} を付けました`)}
-          onDelete={() => {
-            const ids = selectedBooks.map(b => b.id)
-            setSelected(new Set())
-            destroyBooks(ids, `${ids.length}冊を削除しました`)
-          }}
-          onClear={() => setSelected(new Set())}
-        />
-      )}
-
       {canEdit ? (
         <Drawer
           book={openBook}
           onClose={() => setOpenBook(null)}
-          onUpdate={(id, attributes, label) => updateBooks([{ id, attributes }], label)}
-          onSave={(id, attributes) => perform(null, [{ op: "update", id, attributes }], null, { reload: false })}
-          onStatus={(id, s) => setStatus([id], s)}
-          onDelete={b => destroyBooks([b.id], `『${b.title}』を削除しました`)}
+          onUpdate={(id, attributes, label) => updateBook(id, attributes, label)}
+          onSave={(id, attributes) => save(() => api.updateBook(id, attributes), { reload: false })}
+          onStatus={(id, s) => { const book = findBook(id); if (book) setStatus(book, s) }}
+          onDelete={b => deleteBook(b.id, `『${b.title}』を削除しました`)}
         />
       ) : <BookDetail book={openBook} onClose={() => setOpenBook(null)} />}
 
-      {canEdit && importing && (
-        <BulkImport onPhoto={file => { setError(null); photo.start(file) }} onClose={() => setImporting(false)} />
-      )}
-
-      {canEdit && photo.state.status === "reading" && <PhotoReading onCancel={photo.cancel} />}
-
-      {canEdit && review && (
-        <BulkReview
-          lines={review.lines}
-          truncated={review.truncated}
-          initialStatus={addStatus}
-          onRegister={async items => !!(await createBooks(items, `${items.length}冊を登録しました`))}
-          onClose={() => setReview(null)}
-        />
-      )}
+      {canEdit && importing && <BulkImportMenu onClose={() => setImporting(false)} />}
 
       {canEdit && scanning && (
         <Suspense fallback={null}>

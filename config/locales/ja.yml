@@ -5,3 +5,24 @@ ja:
         want: 読みたい
         reading: 読んでる
         read: 読んだ
+  activerecord:
+    models:
+      book: 本
+    attributes:
+      book:
+        title: タイトル
+        author: 著者
+        edition_id: 本のマスタ
+        isbn13: ISBN
+        rating: 評価
+        notes: メモ
+        reading_dates: 読了日
+        user: ユーザー
+  errors:
+    format: "%{attribute}%{message}"
+    messages:
+      blank: を入力してください
+      too_long: は%{count}文字以内で入力してください
+      inclusion: は一覧にありません
+      required: を入力してください
+      taken: はすでに存在します

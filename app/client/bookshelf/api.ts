@@ -1,4 +1,4 @@
-import type { AiSearch, BatchOp, Book, Edition, EditionMatch, Filters, IsbnLookup, ParsedLine, ShelfPage, ShelfPhotoScan } from "./types"
+import type { AiSearch, Book, BookAttributes, Edition, EditionMatch, Filters, IsbnLookup, ParsedLine, ShelfPage, ShelfPhotoScan } from "./types"
 
 const csrfToken = (): string => document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? ""
 
@@ -21,8 +21,23 @@ const jsonPost = (payload: unknown): RequestInit => ({
   body: JSON.stringify(payload),
 })
 
-export async function batch(ops: BatchOp[], { keepalive = false }: { keepalive?: boolean } = {}): Promise<Book[]> {
-  const body = await request<{ books: Book[] }>("/api/books/batch", { ...jsonPost({ ops }), keepalive })
+export async function createBook(attributes: BookAttributes): Promise<Book> {
+  const body = await request<{ book: Book }>("/api/books", jsonPost({ book: attributes }))
+  return body.book
+}
+
+export async function updateBook(id: number, attributes: BookAttributes): Promise<Book> {
+  const body = await request<{ book: Book }>(`/api/books/${id}`, { ...jsonPost({ book: attributes }), method: "PATCH" })
+  return body.book
+}
+
+export async function destroyBook(id: number, { keepalive = false }: { keepalive?: boolean } = {}): Promise<Book> {
+  const body = await request<{ book: Book }>(`/api/books/${id}`, { method: "DELETE", keepalive })
+  return body.book
+}
+
+export async function createBooksInBulk(books: BookAttributes[]): Promise<Book[]> {
+  const body = await request<{ books: Book[] }>("/api/books_bulk", jsonPost({ books }))
   return body.books
 }
 
@@ -59,7 +74,7 @@ export function fetchShelf(filters: Filters, signal?: AbortSignal): Promise<Shel
 }
 
 export function fetchPublicShelf(ownerId: number, filters: Filters, signal?: AbortSignal): Promise<ShelfPage> {
-  return request<ShelfPage>(`/api/public/shelves/${ownerId}?${shelfParams(filters)}`, { signal })
+  return request<ShelfPage>(`/api/public/users/${ownerId}/books?${shelfParams(filters)}`, { signal })
 }
 
 export async function searchPublicEditions(query: string, signal?: AbortSignal): Promise<Edition[]> {

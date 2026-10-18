@@ -17,7 +17,6 @@
 @use "../../blocks/book-row";
 @use "../../blocks/cover";
 @use "../../blocks/status-pill";
-@use "../../blocks/bulk-bar";
 @use "../../blocks/drawer";
 @use "../../blocks/field";
 @use "../../blocks/rating";
@@ -27,5 +26,4 @@
 @use "../../blocks/toast";
 @use "../../blocks/modal";
 @use "../../blocks/scanner";
-@use "../../blocks/bulk-review";
-@use "../../blocks/bulk-import";
+@use "../../blocks/bulk-import-menu";

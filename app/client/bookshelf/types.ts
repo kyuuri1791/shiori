@@ -33,11 +33,6 @@ export type Book = {
 
 export type BookAttributes = Partial<Pick<Book, "title" | "author" | "status" | "rating" | "tags" | "review" | "notes" | "reading_dates" | "edition_id" | "isbn13">>
 
-export type BatchOp =
-  | { op: "create"; attributes: BookAttributes }
-  | { op: "update"; id: number; attributes: BookAttributes }
-  | { op: "destroy"; id: number }
-
 export type PageSeriesItem = number | string
 
 export type PageInfo = {
@@ -77,7 +72,7 @@ export type ShelfPage = {
   filters: Filters
 }
 
-export type AiTarget = "latest" | "first" | "volume" | "any"
+export type AiTarget = "latest" | "first" | "volume" | "all" | "any"
 
 export type AiGuess = { title: string; author: string | null }
 
@@ -123,7 +118,7 @@ export type AddResult = { state: "added" | "unmatched" | "owned" | "failed"; tit
 export type ToastState = { message: string; undoable: boolean; key: number }
 
 export type UpdateBook = (id: number, attributes: BookAttributes, label: string) => unknown
-export type SaveBook = (id: number, attributes: BookAttributes) => Promise<Book[] | null>
+export type SaveBook = (id: number, attributes: BookAttributes) => Promise<Book | null>
 
 export type ViewerMode = "owner" | "readonly" | "guest"
 

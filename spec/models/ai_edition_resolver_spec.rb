@@ -158,4 +158,23 @@ RSpec.describe AiEditionResolver do
       expect(editions).to eq [ first_guess, third_guess ]
     end
   end
+
+  describe "シリーズ全部" do
+    let!(:target) { "all" }
+    let!(:titles) { [ "とある魔術の禁書目録", "新約 とある魔術の禁書目録" ] }
+    let!(:first) { create(:edition, title: "とある魔術の禁書目録", published_on: "2004-04") }
+    let!(:second) { create(:edition, title: "とある魔術の禁書目録(インデックス) 2 0951", published_on: "2004-06") }
+    let!(:tenth) { create(:edition, title: "とある魔術の禁書目録. 10 1301", published_on: "2006-06") }
+    let!(:sequel) { create(:edition, title: "新約とある魔術の禁書目録(インデックス). 1 2125", published_on: "2011-03") }
+
+    before do
+      create(:edition, title: "とある魔術の禁書目録. 2 951", published_on: "2004-06")
+      create(:edition, title: "とある魔術の禁書目録 1～3巻セット", published_on: "2020-01")
+      create(:edition, title: "とある科学の超電磁砲 : とある魔術の禁書目録外伝. 1", published_on: "2007-02")
+    end
+
+    it "本編を巻数の順に、同じ巻の重複とまとめ買いのセットを除いて返す" do
+      expect(editions).to eq [ first, second, tenth, sequel ]
+    end
+  end
 end

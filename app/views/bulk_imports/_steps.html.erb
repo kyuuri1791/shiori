@@ -1,0 +1,5 @@
+<ol class="bulk-import__steps">
+  <% BulkImportsHelper::BULK_IMPORT_STEPS.each do |key, label| %>
+    <li class="bulk-import__step<%= " bulk-import__step--current" if key == current %>"<%= ' aria-current="step"'.html_safe if key == current %>><%= label %></li>
+  <% end %>
+</ol>
