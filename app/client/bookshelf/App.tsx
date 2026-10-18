@@ -28,7 +28,7 @@ const isStatus = (value: string | null): value is Status => value === "reading" 
 
 function loadAddStatus(): Status {
   try {
-    const stored = localStorage.getItem("dokusho-card-add-status")
+    const stored = localStorage.getItem("shiori-add-status")
     return isStatus(stored) ? stored : "read"
   } catch {
     return "read"
@@ -73,7 +73,7 @@ export default function App({ initial }: { initial: BookshelfPage }) {
   openUserShelfItemRef.current = openUserShelfItem
 
   useEffect(() => {
-    try { localStorage.setItem("dokusho-card-add-status", addStatus) } catch {}
+    try { localStorage.setItem("shiori-add-status", addStatus) } catch {}
   }, [addStatus])
 
   function findUserShelfItem(id: number): UserShelfItem | undefined {
@@ -271,7 +271,7 @@ export default function App({ initial }: { initial: BookshelfPage }) {
     <>
       <div className="page">
         <header className="page-header">
-          <h1 className="page-title"><a className="text-inherit no-underline" href="/">読書カード帳</a></h1>
+          <h1 className="page-title"><a className="text-inherit no-underline" href="/">shiori</a></h1>
           <div className="page-nav">
             {viewer.mode !== "guest" && (
               <>

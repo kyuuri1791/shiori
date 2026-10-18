@@ -17,7 +17,7 @@ const isMode = (value: string | null): value is Mode => value === "ai" || value 
 
 function loadMode(): Mode {
   try {
-    const stored = localStorage.getItem("dokusho-card-add-mode")
+    const stored = localStorage.getItem("shiori-add-mode")
     return isMode(stored) ? stored : "ai"
   } catch {
     return "ai"
@@ -207,7 +207,7 @@ export default function AddBar({ canRegister, canUseAi, notice, searcher, addSta
   const submitRef = useRef<() => void>(() => {})
 
   useEffect(() => {
-    try { localStorage.setItem("dokusho-card-add-mode", storedMode) } catch {}
+    try { localStorage.setItem("shiori-add-mode", storedMode) } catch {}
   }, [storedMode])
 
   const guard = <A,>(action: (arg: A) => Promise<boolean>) => async (arg: A): Promise<boolean> => {

@@ -26,17 +26,17 @@ default: &default
 development:
   primary:
     <<: *default
-    database: dokusho_card_development
+    database: shiori_development
   queue:
     <<: *default
-    database: dokusho_card_development_queue
+    database: shiori_development_queue
     migrations_paths: db/queue_migrate
 
   # The specified database role being used to connect to PostgreSQL.
   # To create additional roles in PostgreSQL see `$ createuser --help`.
   # When left blank, PostgreSQL will use the default role. This is
   # the same name as the operating system user running Rails.
-  #username: dokusho_card
+  #username: shiori
 
   # The password associated with the PostgreSQL role (username).
   #password:
@@ -65,10 +65,10 @@ development:
 test:
   primary:
     <<: *default
-    database: dokusho_card_test
+    database: shiori_test
   queue:
     <<: *default
-    database: dokusho_card_test_queue
+    database: shiori_test_queue
     migrations_paths: db/queue_migrate
 
 # As with config/credentials.yml, you never want to store sensitive information,
@@ -94,10 +94,10 @@ test:
 production:
   primary: &primary_production
     <<: *default
-    database: dokusho_card_production
-    username: dokusho_card
-    password: <%= ENV["DOKUSHO_CARD_DATABASE_PASSWORD"] %>
+    database: shiori_production
+    username: shiori
+    password: <%= ENV["SHIORI_DATABASE_PASSWORD"] %>
   queue:
     <<: *primary_production
-    database: dokusho_card_production_queue
+    database: shiori_production_queue
     migrations_paths: db/queue_migrate

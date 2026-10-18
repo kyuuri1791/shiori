@@ -1,11 +1,11 @@
-<% content_for :title, "みんなの本棚 | 読書カード帳" %>
+<% content_for :title, "みんなの本棚 | shiori" %>
 <% content_for :head do %>
   <meta name="robots" content="noindex, nofollow">
 <% end %>
 
 <div class="page">
   <header class="page-header">
-    <h1 class="page-title"><%= link_to "読書カード帳", root_path, class: "text-inherit no-underline" %></h1>
+    <h1 class="page-title"><%= link_to "shiori", root_path, class: "text-inherit no-underline" %></h1>
     <div class="page-nav">
       <% if current_user %>
         <%= link_to "自分の本棚", root_path, class: "btn-link" %>

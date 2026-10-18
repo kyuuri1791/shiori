@@ -1,4 +1,4 @@
-# 読書カード帳
+# shiori
 
 自分用の読書記録アプリ。Rails 8.1 / Ruby 4.0 / PostgreSQL 17 / React 19 + Vite 8（HMR あり）。
 開発環境はすべて Docker Compose 上で動き、コマンドは [dip](https://github.com/bibendi/dip) 経由で叩く。

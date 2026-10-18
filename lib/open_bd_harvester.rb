@@ -8,7 +8,7 @@ class OpenBdHarvester
   BATCH_SIZE = 1000
   MIN_INTERVAL = 1.0
   MAX_ATTEMPTS = 5
-  USER_AGENT = "dokusho_card-master-harvester/1.0".freeze
+  USER_AGENT = "shiori-master-harvester/1.0".freeze
 
   def initialize(dir:, logger: Logger.new($stdout))
     @dir = Pathname(dir)

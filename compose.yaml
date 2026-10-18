@@ -1,3 +1,5 @@
+name: shiori
+
 x-app: &app
   build:
     context: .
@@ -5,7 +7,7 @@ x-app: &app
     args:
       UID: ${UID:-1000}
       GID: ${GID:-1000}
-  image: dokusho_card-dev
+  image: shiori-dev
   volumes:
     - .:/app
     - bundle:/usr/local/bundle

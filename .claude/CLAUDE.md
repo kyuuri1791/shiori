@@ -1,4 +1,4 @@
-# 読書カード帳
+# shiori
 
 自分用の読書記録アプリ。Rails 8.1 / Ruby 4.0 / PostgreSQL 17 / React 19 + Vite 8 / Solid Queue。
 

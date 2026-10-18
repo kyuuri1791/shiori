@@ -3,7 +3,6 @@ version: "8.1"
 compose:
   files:
     - compose.yaml
-  project_name: dokusho_card
 
 interaction:
   bash:
@@ -49,12 +48,12 @@ interaction:
   psql:
     description: 開発用 DB に psql で接続
     service: web
-    command: env PGPASSWORD=postgres psql -h db -U postgres dokusho_card_development
+    command: env PGPASSWORD=postgres psql -h db -U postgres shiori_development
 
   sql:
     description: SQL ファイルを1トランザクションで流す（例 dip sql sql/master/20261101_add_editions.sql）
     service: web
-    command: env PGPASSWORD=postgres psql -h db -U postgres dokusho_card_development -v ON_ERROR_STOP=1 --single-transaction -f
+    command: env PGPASSWORD=postgres psql -h db -U postgres shiori_development -v ON_ERROR_STOP=1 --single-transaction -f
 
   ci:
     description: RuboCop・型チェック・セキュリティチェック・RSpec をまとめて流す

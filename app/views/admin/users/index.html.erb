@@ -1,4 +1,4 @@
-<% content_for :title, "ユーザー管理 | 管理画面 | 読書カード帳" %>
+<% content_for :title, "ユーザー管理 | 管理画面 | shiori" %>
 <% content_for :head do %>
   <meta name="robots" content="noindex, nofollow">
   <%= vite_entry_tags "entrypoints/admin.ts" %>
@@ -7,7 +7,7 @@
 <div class="page">
   <header class="page-header">
     <h1 class="page-title">
-      <%= link_to admin_root_path, class: "text-inherit no-underline" do %>読書カード帳<span class="ml-2.5 rounded bg-stamp px-2 py-0.5 align-middle font-sans text-[13px] font-bold tracking-[.04em] text-card">管理画面</span><% end %>
+      <%= link_to admin_root_path, class: "text-inherit no-underline" do %>shiori<span class="ml-2.5 rounded bg-stamp px-2 py-0.5 align-middle font-sans text-[13px] font-bold tracking-[.04em] text-card">管理画面</span><% end %>
     </h1>
     <div class="page-nav">
       <%= link_to "ジョブの実行状況", mission_control_jobs_path, class: "btn-link" %>
