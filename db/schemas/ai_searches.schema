@@ -1,5 +1,5 @@
 create_table "ai_searches", force: :cascade do |t|
-  t.bigint "user_id", null: false
+  t.references "user", null: false, index: false, foreign_key: true
   t.string "query", null: false
   t.integer "status", null: false, default: 1
   t.jsonb "interpretation"
@@ -13,5 +13,5 @@ create_table "ai_searches", force: :cascade do |t|
   t.index [ "query", "interpreter_version", "created_at" ]
   t.index [ "created_at" ]
 end
-add_foreign_key "ai_searches", "users"
+
 add_check_constraint "ai_searches", "status = ANY (ARRAY[1, 2, 3])", name: "ai_searches_status_range"

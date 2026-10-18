@@ -1,7 +1,6 @@
 create_table "readings", force: :cascade do |t|
-  t.bigint "user_shelf_item_id", null: false
+  t.references "user_shelf_item", null: false, index: false, foreign_key: true
   t.date "finished_on", null: false
   t.timestamps
   t.index [ "user_shelf_item_id", "finished_on" ]
 end
-add_foreign_key "readings", "user_shelf_items"
