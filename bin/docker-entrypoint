@@ -1,8 +1,9 @@
 #!/bin/bash -e
 
-# If running the rails server then create or migrate existing database
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
-  ./bin/rails db:prepare
+  ./bin/rails db:create db:extensions
+  bundle exec ridgepole -c config/database.yml -E production -s primary -f db/Schemafile --apply --pg-change-table-comment
+  ./bin/rails runner 'exit(SolidQueue::Job.table_exists? ? 0 : 1)' || ./bin/rails db:schema:load:queue
 fi
 
 exec "${@}"

@@ -36,3 +36,7 @@
 # Ignore Docker-related files
 /.dockerignore
 /Dockerfile*
+
+# Ignore local data and build output.
+/data/
+/public/vite/

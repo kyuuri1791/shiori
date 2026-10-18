@@ -1,0 +1,47 @@
+service: shiori
+image: kyuuri1791/shiori
+
+servers:
+  web:
+    - 168.110.31.85
+
+proxy:
+  ssl: true
+  host: 168-110-31-85.sslip.io
+  app_port: 3000
+
+registry:
+  server: ghcr.io
+  username: kyuuri1791
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+env:
+  secret:
+    - RAILS_MASTER_KEY
+    - SHIORI_DATABASE_PASSWORD
+  clear:
+    DATABASE_HOST: shiori-db
+    SOLID_QUEUE_IN_PUMA: true
+    RAILS_MAX_THREADS: 3
+
+ssh:
+  user: ubuntu
+  keys:
+    - ~/.ssh/oracle
+
+builder:
+  arch: amd64
+
+accessories:
+  db:
+    image: postgres:17
+    host: 168.110.31.85
+    env:
+      clear:
+        POSTGRES_USER: shiori
+        POSTGRES_DB: shiori_production
+      secret:
+        - POSTGRES_PASSWORD
+    directories:
+      - data:/var/lib/postgresql/data
