@@ -1,6 +1,5 @@
 FactoryBot.define do
   factory :book do
-    user
-    sequence(:title) { "登録した本 #{it}" }
+    sequence(:title) { "テスト書籍 #{it}" }
   end
 end

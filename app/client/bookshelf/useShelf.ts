@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
-import type { Book, Facets, Filters, PageInfo, ShelfPage } from "./types"
+import type { UserShelfItem, Facets, Filters, PageInfo, ShelfPage } from "./types"
 
-export type Shelf = { books: Book[]; page: PageInfo; facets: Facets }
+export type Shelf = { userShelfItems: UserShelfItem[]; page: PageInfo; facets: Facets }
 export type FetchShelf = (filters: Filters, signal: AbortSignal) => Promise<ShelfPage>
 
 const SEARCH_DELAY_MS = 300
@@ -22,7 +22,7 @@ function syncUrl(filters: Filters): void {
 }
 
 export default function useShelf(initial: ShelfPage, fetchShelf: FetchShelf) {
-  const [shelf, setShelf] = useState<Shelf>({ books: initial.books, page: initial.page, facets: initial.facets })
+  const [shelf, setShelf] = useState<Shelf>({ userShelfItems: initial.user_shelf_items, page: initial.page, facets: initial.facets })
   const [filters, setFilters] = useState<Filters>(initial.filters)
   const [query, setQuery] = useState(initial.filters.q)
   const [loading, setLoading] = useState(false)
@@ -45,7 +45,7 @@ export default function useShelf(initial: ShelfPage, fetchShelf: FetchShelf) {
         setFilters(f => ({ ...f, page: data.page.last }))
         return
       }
-      setShelf({ books: data.books, page: data.page, facets: data.facets })
+      setShelf({ userShelfItems: data.user_shelf_items, page: data.page, facets: data.facets })
       setError(null)
     } catch (e) {
       if (!isAbort(e)) setError(messageOf(e))

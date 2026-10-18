@@ -5,10 +5,10 @@ RSpec.describe "Users" do
   let!(:quiet) { create(:user, email_address: "quiet@example.com") }
 
   before do
-    create(:book, user: active, created_at: 1.day.ago)
-    create(:book, user: active, created_at: 2.days.ago)
-    create(:book, user: quiet, created_at: 10.days.ago)
-    create(:book, user: quiet, created_at: 1.hour.ago).discard!
+    create(:user_shelf_item, user: active, created_at: 1.day.ago)
+    create(:user_shelf_item, user: active, created_at: 2.days.ago)
+    create(:user_shelf_item, user: quiet, created_at: 10.days.ago)
+    create(:user_shelf_item, user: quiet, created_at: 1.hour.ago).discard!
   end
 
   it "ログインしていなくても、本棚の一覧を最近登録した順に見られる" do
@@ -52,9 +52,9 @@ RSpec.describe "Users" do
     end
 
     it "公開の API で、その人の本の一覧を取れる" do
-      get api_public_user_books_path(active), as: :json
+      get api_public_user_user_shelf_items_path(active), as: :json
 
-      expect(response.parsed_body["books"].size).to eq 2
+      expect(response.parsed_body["user_shelf_items"].size).to eq 2
     end
   end
 end

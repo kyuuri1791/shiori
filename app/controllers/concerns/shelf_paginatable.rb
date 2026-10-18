@@ -9,16 +9,16 @@ module ShelfPaginatable
 
   private
     def shelf_page
-      shelf_page_for(current_user.books)
+      shelf_page_for(current_user.user_shelf_items)
     end
 
-    def shelf_page_for(books)
-      query = BookQuery.new(books, params)
-      pagy, page_books = pagy(:offset, query.relation.preload(:readings, edition: :identifiers), limit: PER_PAGE)
+    def shelf_page_for(user_shelf_items)
+      query = UserShelfItemQuery.new(user_shelf_items, params)
+      pagy, page_user_shelf_items = pagy(:offset, query.relation.preload(:readings, book: :identifiers), limit: PER_PAGE)
       {
-        books: page_books.map(&:as_card_json),
+        user_shelf_items: page_user_shelf_items.map(&:as_card_json),
         page: pagy.data_hash(data_keys: %i[count page last previous next from to series]),
-        facets: BookFacets.new(books).to_h,
+        facets: UserShelfItemFacets.new(user_shelf_items).to_h,
         filters: query.to_h.merge(page: pagy.page)
       }
     end

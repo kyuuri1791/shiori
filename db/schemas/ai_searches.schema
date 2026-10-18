@@ -4,7 +4,7 @@ create_table "ai_searches", force: :cascade do |t|
   t.integer "status", null: false, default: 1
   t.jsonb "interpretation"
   t.string "interpreter_version"
-  t.bigint "edition_ids", array: true, null: false, default: []
+  t.bigint "book_ids", array: true, null: false, default: []
   t.string "error_message"
   t.integer "input_tokens"
   t.integer "output_tokens"

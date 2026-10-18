@@ -1,23 +1,23 @@
 import { useEffect, useState } from "react"
 import * as api from "../bookshelf/api"
-import { authorLine, editionSummary } from "../bookshelf/text"
-import type { BookAttributes, Edition, EditionMatch, ParsedLine } from "../bookshelf/types"
+import { authorLine, bookSummary } from "../bookshelf/text"
+import type { UserShelfItemAttributes, Book, BookMatch, ParsedLine } from "../bookshelf/types"
 
 export const MAX_BULK_BOOKS = 100
 const MATCH_CHUNK = 10
 
 export type Choice = number | "free" | "skip"
-export type Row = { line: ParsedLine; match: EditionMatch | null; state: "pending" | "done" | "failed"; choice: Choice; fixed: boolean }
-export type BulkSource = { kind: "lines"; lines: ParsedLine[] } | { kind: "editions"; editions: Edition[] }
-export type Selected = { key: string; title: string; detail: string; attributes: BookAttributes }
+export type Row = { line: ParsedLine; match: BookMatch | null; state: "pending" | "done" | "failed"; choice: Choice; fixed: boolean }
+export type BulkSource = { kind: "lines"; lines: ParsedLine[] } | { kind: "books"; books: Book[] }
+export type Selected = { key: string; title: string; detail: string; attributes: UserShelfItemAttributes }
 
-function defaultChoice(match: EditionMatch): Choice {
+function defaultChoice(match: BookMatch): Choice {
   const index = match.candidates.findIndex(c => c.close)
   if (index < 0) return "free"
   return match.candidates[index]?.owned ? "skip" : index
 }
 
-export function includedChoice(match: EditionMatch): Choice {
+export function includedChoice(match: BookMatch): Choice {
   const choice = defaultChoice(match)
   if (choice !== "skip") return choice
   const index = match.candidates.findIndex(c => !c.owned)
@@ -26,9 +26,9 @@ export function includedChoice(match: EditionMatch): Choice {
 
 function initialRows(source: BulkSource): Row[] {
   if (source.kind === "lines") return source.lines.map(line => ({ line, match: null, state: "pending", choice: "skip", fixed: false }))
-  return source.editions.map(edition => {
-    const match = { isbn13: edition.isbn13, candidates: [{ ...edition, close: true }] }
-    return { line: { title: edition.title, author: authorLine(edition.authors), tags: [] }, match, state: "done", choice: defaultChoice(match), fixed: true }
+  return source.books.map(book => {
+    const match = { isbn13: book.isbn13, candidates: [{ ...book, close: true }] }
+    return { line: { title: book.title, author: authorLine(book.authors), tags: [] }, match, state: "done", choice: defaultChoice(match), fixed: true }
   })
 }
 
@@ -36,9 +36,9 @@ function selectedOf(row: Row): Selected | null {
   const { line, match, choice } = row
   if (choice === "skip" || !match) return null
   if (typeof choice === "number") {
-    const edition = match.candidates[choice]
-    if (!edition) return null
-    return { key: `e${edition.id}`, title: edition.title, detail: editionSummary(edition), attributes: { edition_id: edition.id, tags: line.tags } }
+    const book = match.candidates[choice]
+    if (!book) return null
+    return { key: `e${book.id}`, title: book.title, detail: bookSummary(book), attributes: { book_id: book.id, tags: line.tags } }
   }
   if (match.isbn13) return { key: `i${match.isbn13}`, title: `ISBN ${match.isbn13}`, detail: "本のマスタにないので ISBN だけで登録します", attributes: { isbn13: match.isbn13, tags: line.tags } }
   return { key: `t${line.title}/${line.author}`, title: line.title, detail: "本のマスタに紐付けずに登録します", attributes: { title: line.title, author: line.author, tags: line.tags } }
@@ -55,9 +55,9 @@ export default function useBulkRows(source: BulkSource | null) {
     async function matchAll() {
       for (let start = 0; start < lines.length; start += MATCH_CHUNK) {
         const chunk = lines.slice(start, start + MATCH_CHUNK)
-        let matches: EditionMatch[] | null = null
+        let matches: BookMatch[] | null = null
         try {
-          matches = await api.matchEditions(chunk, controller.signal)
+          matches = await api.matchBooks(chunk, controller.signal)
         } catch {
           if (controller.signal.aborted) return
         }

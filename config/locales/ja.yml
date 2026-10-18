@@ -1,18 +1,19 @@
 ja:
   enumerize:
-    book:
+    user_shelf_item:
       status:
         want: 読みたい
         reading: 読んでる
         read: 読んだ
   activerecord:
     models:
+      user_shelf_item: 本棚の本
       book: 本
     attributes:
-      book:
+      user_shelf_item:
         title: タイトル
         author: 著者
-        edition_id: 本のマスタ
+        book_id: 本のマスタ
         isbn13: ISBN
         rating: 評価
         notes: メモ

@@ -1,40 +1,28 @@
 module Api
   class BooksController < ApplicationController
-    include ShelfPaginatable
+    rate_limit to: 120, within: 1.minute, only: :search, with: -> { render_error("検索が多すぎます。少し待ってからもう一度お試しください", :too_many_requests) }
 
-    def index
-      render json: shelf_page
+    def search(q: "", author: "")
+      books = Book.suggest(q.to_s.first(UserShelfItemQuery::MAX_TEXT_LENGTH), author: author.to_s.first(UserShelfItemQuery::MAX_TEXT_LENGTH))
+      owned = current_user.user_shelf_items.where(book_id: books.map(&:id)).pluck(:book_id).to_set
+      render json: { books: books.map { it.as_card_json.merge(owned: owned.include?(it.id)) } }
     end
 
-    def create(book)
-      created = current_user.books.new(book_attributes(book))
-      if created.save
-        render json: { book: created.as_card_json }, status: :created
-      else
-        render_error(created.errors.full_messages.to_sentence, :unprocessable_content)
-      end
-    end
-
-    def update(id, book)
-      found = current_user.books.find(id)
-      if found.update(book_attributes(book))
-        render json: { book: found.as_card_json }
-      else
-        render_error(found.errors.full_messages.to_sentence, :unprocessable_content)
-      end
-    end
-
-    def destroy(id)
-      found = current_user.books.find(id)
-      found.discard!
-      render json: { book: found.as_card_json }
+    def lookup(isbn: nil)
+      isbn = Isbn.parse(isbn)
+      book = isbn && Book.preload(:identifiers).find_by_isbn(isbn.to_s)
+      owned_user_shelf_item = isbn && owned_user_shelf_items(isbn, book).first
+      render json: {
+        book: book&.as_card_json,
+        owned_user_shelf_item: owned_user_shelf_item && { id: owned_user_shelf_item.id, title: owned_user_shelf_item.title }
+      }
     end
 
     private
-      def book_attributes(book)
-        permitted = book.permit(:title, :author, :status, :rating, :review, :edition_id, :isbn13, tags: [], notes: [ :t, :text ], reading_dates: []).to_h
-        permitted["notes"] = permitted["notes"].map { { "t" => it["t"].to_i, "text" => it["text"].to_s } } if permitted.key?("notes")
-        permitted
+      def owned_user_shelf_items(isbn, book)
+        user_shelf_items = current_user.user_shelf_items
+        by_isbn = user_shelf_items.where(isbn13: isbn.to_s)
+        book ? by_isbn.or(user_shelf_items.where(book_id: book.id)) : by_isbn
       end
   end
 end

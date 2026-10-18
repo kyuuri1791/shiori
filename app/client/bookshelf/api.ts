@@ -1,4 +1,4 @@
-import type { AiSearch, Book, BookAttributes, Edition, EditionMatch, Filters, IsbnLookup, ParsedLine, ShelfPage, ShelfPhotoScan } from "./types"
+import type { AiSearch, UserShelfItem, UserShelfItemAttributes, Book, BookMatch, Filters, IsbnLookup, ParsedLine, ShelfPage, ShelfPhotoScan } from "./types"
 
 const csrfToken = (): string => document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? ""
 
@@ -21,41 +21,41 @@ const jsonPost = (payload: unknown): RequestInit => ({
   body: JSON.stringify(payload),
 })
 
-export async function createBook(attributes: BookAttributes): Promise<Book> {
-  const body = await request<{ book: Book }>("/api/books", jsonPost({ book: attributes }))
-  return body.book
+export async function createUserShelfItem(attributes: UserShelfItemAttributes): Promise<UserShelfItem> {
+  const body = await request<{ user_shelf_item: UserShelfItem }>("/api/user_shelf_items", jsonPost({ user_shelf_item: attributes }))
+  return body.user_shelf_item
 }
 
-export async function updateBook(id: number, attributes: BookAttributes): Promise<Book> {
-  const body = await request<{ book: Book }>(`/api/books/${id}`, { ...jsonPost({ book: attributes }), method: "PATCH" })
-  return body.book
+export async function updateUserShelfItem(id: number, attributes: UserShelfItemAttributes): Promise<UserShelfItem> {
+  const body = await request<{ user_shelf_item: UserShelfItem }>(`/api/user_shelf_items/${id}`, { ...jsonPost({ user_shelf_item: attributes }), method: "PATCH" })
+  return body.user_shelf_item
 }
 
-export async function destroyBook(id: number, { keepalive = false }: { keepalive?: boolean } = {}): Promise<Book> {
-  const body = await request<{ book: Book }>(`/api/books/${id}`, { method: "DELETE", keepalive })
-  return body.book
+export async function destroyUserShelfItem(id: number, { keepalive = false }: { keepalive?: boolean } = {}): Promise<UserShelfItem> {
+  const body = await request<{ user_shelf_item: UserShelfItem }>(`/api/user_shelf_items/${id}`, { method: "DELETE", keepalive })
+  return body.user_shelf_item
 }
 
-export async function createBooksInBulk(books: BookAttributes[]): Promise<Book[]> {
-  const body = await request<{ books: Book[] }>("/api/books_bulk", jsonPost({ books }))
+export async function createUserShelfItemsInBulk(userShelfItems: UserShelfItemAttributes[]): Promise<UserShelfItem[]> {
+  const body = await request<{ user_shelf_items: UserShelfItem[] }>("/api/user_shelf_items_bulk", jsonPost({ user_shelf_items: userShelfItems }))
+  return body.user_shelf_items
+}
+
+export async function searchBooks(query: string, signal?: AbortSignal, author = ""): Promise<Book[]> {
+  const params = new URLSearchParams({ q: query })
+  if (author) params.set("author", author)
+  const body = await request<{ books: Book[] }>(`/api/books/search?${params}`, { signal })
   return body.books
 }
 
-export async function searchEditions(query: string, signal?: AbortSignal, author = ""): Promise<Edition[]> {
-  const params = new URLSearchParams({ q: query })
-  if (author) params.set("author", author)
-  const body = await request<{ editions: Edition[] }>(`/api/editions/search?${params}`, { signal })
-  return body.editions
-}
-
-export async function matchEditions(lines: ParsedLine[], signal?: AbortSignal): Promise<EditionMatch[]> {
+export async function matchBooks(lines: ParsedLine[], signal?: AbortSignal): Promise<BookMatch[]> {
   const items = lines.map(({ title, author, volume }) => ({ title, author, volume: volume ?? null }))
-  const body = await request<{ matches: EditionMatch[] }>("/api/edition_matches", { ...jsonPost({ items }), signal })
+  const body = await request<{ matches: BookMatch[] }>("/api/book_matches", { ...jsonPost({ items }), signal })
   return body.matches
 }
 
 export function lookupIsbn(isbn: string): Promise<IsbnLookup> {
-  return request<IsbnLookup>(`/api/editions/lookup?isbn=${encodeURIComponent(isbn)}`)
+  return request<IsbnLookup>(`/api/books/lookup?isbn=${encodeURIComponent(isbn)}`)
 }
 
 function shelfParams(filters: Filters): URLSearchParams {
@@ -70,16 +70,16 @@ function shelfParams(filters: Filters): URLSearchParams {
 }
 
 export function fetchShelf(filters: Filters, signal?: AbortSignal): Promise<ShelfPage> {
-  return request<ShelfPage>(`/api/books?${shelfParams(filters)}`, { signal })
+  return request<ShelfPage>(`/api/user_shelf_items?${shelfParams(filters)}`, { signal })
 }
 
 export function fetchPublicShelf(ownerId: number, filters: Filters, signal?: AbortSignal): Promise<ShelfPage> {
-  return request<ShelfPage>(`/api/public/users/${ownerId}/books?${shelfParams(filters)}`, { signal })
+  return request<ShelfPage>(`/api/public/users/${ownerId}/user_shelf_items?${shelfParams(filters)}`, { signal })
 }
 
-export async function searchPublicEditions(query: string, signal?: AbortSignal): Promise<Edition[]> {
-  const body = await request<{ editions: Edition[] }>(`/api/public/editions/search?${new URLSearchParams({ q: query })}`, { signal })
-  return body.editions
+export async function searchPublicBooks(query: string, signal?: AbortSignal): Promise<Book[]> {
+  const body = await request<{ books: Book[] }>(`/api/public/books/search?${new URLSearchParams({ q: query })}`, { signal })
+  return body.books
 }
 
 export function startAiSearch(q: string): Promise<AiSearch> {

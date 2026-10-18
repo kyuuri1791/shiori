@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import * as api from "./api"
-import type { AiInterpretation, AiTarget, Edition } from "./types"
+import type { AiInterpretation, AiTarget, Book } from "./types"
 
 const POLL_INTERVAL_MS = 800
 const MAX_WAIT_MS = 30000
@@ -9,11 +9,11 @@ export type AiSearchState = {
   status: "idle" | "pending" | "succeeded" | "failed"
   query: string
   interpretation: AiInterpretation | null
-  editions: Edition[]
+  books: Book[]
   error: string | null
 }
 
-const IDLE: AiSearchState = { status: "idle", query: "", interpretation: null, editions: [], error: null }
+const IDLE: AiSearchState = { status: "idle", query: "", interpretation: null, books: [], error: null }
 
 function sleep(ms: number, signal: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -61,11 +61,11 @@ export default function useAiSearch() {
         search = await api.getAiSearch(search.id, controller.signal)
       }
       if (search.status !== "succeeded") throw new Error(search.error ?? "AI検索がうまくいきませんでした")
-      setState({ status: "succeeded", query, interpretation: search.interpretation, editions: search.editions, error: null })
+      setState({ status: "succeeded", query, interpretation: search.interpretation, books: search.books, error: null })
     } catch (error) {
       if (isAbort(error)) return
-      const editions = await api.searchEditions(query, controller.signal).catch((): Edition[] => [])
-      if (!controller.signal.aborted) setState({ status: "failed", query, interpretation: null, editions, error: messageOf(error) })
+      const books = await api.searchBooks(query, controller.signal).catch((): Book[] => [])
+      if (!controller.signal.aborted) setState({ status: "failed", query, interpretation: null, books, error: messageOf(error) })
     }
   }
 

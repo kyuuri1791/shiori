@@ -18,14 +18,14 @@ module Api
 
     private
       def search_json(search)
-        editions = search.status_succeeded? ? search.editions : []
-        owned = current_user.books.where(edition_id: editions.map(&:id)).pluck(:edition_id).to_set
+        books = search.status_succeeded? ? search.books : []
+        owned = current_user.user_shelf_items.where(book_id: books.map(&:id)).pluck(:book_id).to_set
         {
           id: search.id,
           status: search.status,
           query: search.query,
           interpretation: search.interpretation,
-          editions: editions.map { it.as_card_json.merge(owned: owned.include?(it.id)) },
+          books: books.map { it.as_card_json.merge(owned: owned.include?(it.id)) },
           error: search.status_failed? ? "AI検索がうまくいきませんでした" : nil
         }
       end

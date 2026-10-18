@@ -1,25 +1,10 @@
 create_table "books", force: :cascade do |t|
-  t.bigint "user_id", null: false
-  t.bigint "edition_id"
-  t.string "isbn13"
   t.string "title", null: false
-  t.string "author", null: false, default: ""
-  t.integer "status", null: false, default: 1
-  t.integer "rating", null: false, default: 0
-  t.string "tags", array: true, null: false, default: []
-  t.text "review", null: false, default: ""
-  t.jsonb "notes", null: false, default: []
-  t.date "last_read_on"
-  t.datetime "discarded_at"
+  t.string "authors", array: true, null: false, default: []
+  t.string "publisher"
+  t.string "published_on"
+  t.string "cover_url"
   t.timestamps
-  t.index [ "user_id", "discarded_at" ]
-  t.index [ "edition_id" ]
-  t.index [ "isbn13" ]
-  t.index [ "user_id", "edition_id" ], unique: true, name: "index_books_on_user_edition_kept", where: "((discarded_at IS NULL) AND (edition_id IS NOT NULL))"
-  t.index [ "user_id", "isbn13" ], unique: true, name: "index_books_on_user_isbn13_kept", where: "((discarded_at IS NULL) AND (isbn13 IS NOT NULL))"
-  t.index [ "tags" ], using: :gin
-  t.index [ "user_id", "last_read_on" ]
+  t.index [ "title" ], using: :gin, opclass: :gin_trgm_ops
+  t.index [ "title" ], name: "index_books_on_title_prefix", opclass: :text_pattern_ops
 end
-add_foreign_key "books", "users"
-add_foreign_key "books", "editions"
-add_check_constraint "books", "status = ANY (ARRAY[1, 2, 3])", name: "books_status_range"

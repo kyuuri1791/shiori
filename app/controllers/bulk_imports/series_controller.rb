@@ -5,12 +5,12 @@ module BulkImports
     def new
     end
 
-    def confirm(books)
-      show_confirmation(books)
+    def confirm(user_shelf_items)
+      show_confirmation(user_shelf_items)
     end
 
-    def create(books, status)
-      register_books(books, status)
+    def create(user_shelf_items, status)
+      register_user_shelf_items(user_shelf_items, status)
     end
 
     def complete

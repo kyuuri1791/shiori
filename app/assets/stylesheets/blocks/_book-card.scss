@@ -1,0 +1,57 @@
+.book-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+
+  &--unmatched {
+    border-style: dashed;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  &__body {
+    min-width: 0;
+    display: grid;
+    gap: 4px;
+    font-size: 13px;
+  }
+
+  &__isbn {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  &__external {
+    color: var(--accent);
+    font-size: 13px;
+    text-underline-offset: 2px;
+  }
+
+  &__external-note {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  &__note {
+    color: var(--muted);
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  &__search {
+    display: grid;
+    gap: 8px;
+  }
+}

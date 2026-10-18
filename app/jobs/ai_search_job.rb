@@ -9,8 +9,8 @@ class AiSearchJob < ApplicationJob
     return unless search.status_pending?
 
     attributes = interpret(search.query)
-    editions = Edition.with_statement_timeout(RESOLVE_TIMEOUT_MS) { AiEditionResolver.new(attributes[:interpretation]).editions }
-    search.update!(attributes.merge(status: :succeeded, edition_ids: editions.map(&:id), interpreter_version: BookQueryInterpreter::VERSION))
+    books = Book.with_statement_timeout(RESOLVE_TIMEOUT_MS) { AiBookResolver.new(attributes[:interpretation]).books }
+    search.update!(attributes.merge(status: :succeeded, book_ids: books.map(&:id), interpreter_version: BookQueryInterpreter::VERSION))
   rescue BookQueryInterpreter::Error, Anthropic::Errors::APIError, ActiveRecord::QueryCanceled => e
     Rails.logger.warn("[AiSearchJob] #{ai_search_id} failed: #{e.class}: #{e.message}")
     search&.update!(status: :failed, error_message: e.class.name.first(255))

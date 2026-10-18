@@ -1,93 +1,74 @@
 class Book < ApplicationRecord
-  include SoftDeletable
-  extend Enumerize
+  has_many :identifiers, class_name: "BookIdentifier", dependent: :destroy
+  has_many :user_shelf_items, dependent: :nullify
 
-  enumerize :status, in: { want: 1, reading: 2, read: 3 }, default: :want, predicates: { prefix: true }
+  validates :title, presence: true
 
-  belongs_to :user
-  belongs_to :edition, optional: true
-  has_many :readings, -> { order(:finished_on) }, dependent: :delete_all
+  scope :with_identifier, ->(scheme, value) { joins(:identifiers).where(book_identifiers: { scheme:, value: }) }
 
-  normalizes :title, :author, with: ->(v) { v.to_s.strip }
-  normalizes :isbn13, with: ->(v) { Isbn.parse(v)&.to_s }
-  normalizes :tags, with: ->(tags) { Array(tags).map { it.to_s.strip.delete_prefix("#").delete_prefix("＃") }.reject(&:blank?).uniq }
-
-  scope :tagged, ->(tag) { where("books.tags @> ARRAY[?]::varchar[]", tag) }
-  scope :matching_text, ->(text) {
-    where(<<~SQL.squish, like: "%#{sanitize_sql_like(text)}%")
-      books.title ILIKE :like OR books.author ILIKE :like OR books.review ILIKE :like OR books.isbn13 ILIKE :like
-      OR array_to_string(books.tags, ' ') ILIKE :like OR books.notes::text ILIKE :like
-    SQL
-  }
-
-  before_validation :copy_from_edition
-  validates :title, presence: true, length: { maximum: 500 }
-  validate :not_on_shelf_yet
-  validates :author, length: { maximum: 500 }
-  validates :rating, inclusion: { in: 0..5 }
-  validate :notes_shape
-  validate :reading_dates_format
-  after_save :sync_readings
-
-  def reading_dates=(values)
-    @invalid_reading_dates = false
-    @pending_reading_dates = Array(values).map { Date.iso8601(it.to_s) }
-  rescue Date::Error
-    @invalid_reading_dates = true
+  def self.find_by_isbn(value)
+    isbn = Isbn.parse(value) or return nil
+    with_identifier("isbn13", isbn.to_s).first
   end
 
-  def reading_dates
-    readings.map { it.finished_on.iso8601 }
+  MIN_TRIGRAM_LENGTH = 3
+
+  def self.search(query, author: nil, limit: 10)
+    q = query.to_s.strip
+    return none if q.empty?
+
+    q.length < MIN_TRIGRAM_LENGTH ? prefix_search(q, author, limit) : trigram_search(q, author, limit)
   end
+
+  def self.author_first(author)
+    normalized = author.to_s.unicode_normalize(:nfkc).gsub(/[\s.・]/, "")
+    return if normalized.empty?
+
+    Arel.sql(sanitize_sql_array([
+      "(regexp_replace(array_to_string(books.authors, ''), '[[:space:].・]', '', 'g') ILIKE ?) DESC",
+      "%#{sanitize_sql_like(normalized)}%"
+    ]))
+  end
+
+  def self.prefix_search(q, author, limit)
+    where("books.title LIKE ?", "#{sanitize_sql_like(q)}%")
+      .order(*[ author_first(author), Arel.sql("char_length(books.title)"), :id ].compact)
+      .limit(limit)
+  end
+
+  def self.trigram_search(q, author, limit)
+    contains = "%#{sanitize_sql_like(q)}%"
+    where("books.title ILIKE :contains OR books.title % :q", contains:, q:)
+      .order(*[
+        Arel.sql(sanitize_sql_array([ "(books.title ILIKE ?) DESC", contains ])),
+        author_first(author),
+        Arel.sql(sanitize_sql_array([ "(books.title ILIKE ?) DESC", "#{sanitize_sql_like(q)}%" ])),
+        Arel.sql(sanitize_sql_array([ "similarity(books.title, ?) DESC", q ])),
+        :id
+      ].compact)
+      .limit(limit)
+  end
+
+  SUGGEST_TIMEOUT_MS = 500
+
+  def self.suggest(query, author: nil)
+    with_statement_timeout(SUGGEST_TIMEOUT_MS) { search(query, author:).preload(:identifiers).to_a }
+  end
+
+  def self.with_statement_timeout(milliseconds)
+    transaction do
+      connection.exec_query("SELECT set_config('statement_timeout', $1, true)", "statement_timeout", [ Integer(milliseconds).to_s ])
+      yield
+    end
+  end
+
+  def isbn13
+    identifiers.find { it.scheme == "isbn13" }&.value
+  end
+
+  def author_line = [ authors.first(2).join("、"), ("ほか" if authors.size > 2) ].compact.join(" ")
 
   def as_card_json
-    {
-      id:, edition_id:, isbn13:, title:, author:, status:, rating:, tags:, review:, notes:, reading_dates:,
-      edition: edition&.as_card_json,
-      discarded: discarded?,
-      created_at: (created_at.to_f * 1000).to_i
-    }
+    { id:, isbn13:, title:, authors:, publisher:, published_on:, cover_url: }
   end
-
-  private
-    def copy_from_edition
-      if edition
-        self.title = edition.title if title.blank?
-        self.author = edition.author_line if author.blank?
-        self.isbn13 ||= edition.isbn13
-      elsif title.blank? && isbn13.present?
-        self.title = "ISBN #{isbn13}"
-      end
-    end
-
-    def sync_readings
-      if @pending_reading_dates
-        readings.delete_all
-        @pending_reading_dates.sort.each { readings.create!(finished_on: it) }
-        @pending_reading_dates = nil
-      elsif saved_change_to_status? && status_read? && readings.none?
-        readings.create!(finished_on: Date.current)
-      else
-        return
-      end
-      readings.reset
-      update_column(:last_read_on, readings.maximum(:finished_on))
-    end
-
-    def not_on_shelf_yet
-      return unless user && (edition_id || isbn13)
-
-      others = user.books.where.not(id:)
-      duplicated = (edition_id && others.exists?(edition_id:)) || (isbn13 && others.exists?(isbn13:))
-      errors.add(:base, "すでに本棚にある本です") if duplicated
-    end
-
-    def notes_shape
-      ok = notes.is_a?(Array) && notes.all? { it.is_a?(Hash) && it["text"].is_a?(String) && it["t"].is_a?(Integer) }
-      errors.add(:notes, "の形式が正しくありません") unless ok
-    end
-
-    def reading_dates_format
-      errors.add(:reading_dates, "の日付が正しくありません") if @invalid_reading_dates
-    end
 end

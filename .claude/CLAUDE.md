@@ -26,7 +26,7 @@
 
 ## 全体の構成
 
-- 本棚画面は `books#index`（HTML）＋ React（`app/client/bookshelf/`）。データの取得・書き込みは `app/controllers/api/` の JSON API。
+- 本棚画面は `user_shelf_items#index`（HTML）＋ React（`app/client/bookshelf/`）。データの取得・書き込みは `app/controllers/api/` の JSON API。
 - アプリの DB（`primary`）はスキーマを ridgepole で管理。ジョブキューは別 DB（`queue`）の Solid Queue で、ワーカーは compose の `jobs` サービス。
-- 本のマスタ（`editions` / `edition_identifiers`）は openBD の全件（約194万冊）。本番と開発で同じデータを使う。
+- 本のマスタ（`books` / `book_identifiers`）は openBD の全件（約194万冊）。本番と開発で同じデータを使う。
 - 開発用データは `db/seeds.rb` → `lib/dev_seeder.rb`（development のみ）。ユーザーと本棚だけを作り、本棚の本は投入済みのマスタから乱数シード固定で選ぶ。マスタは seed では作らない。

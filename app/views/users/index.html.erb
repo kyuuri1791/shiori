@@ -27,7 +27,7 @@
             <%= link_to user_path(user), class: "user-list__item" do %>
               <span class="user-list__name">本棚 #<%= user.id %><% if user.id == current_user&.id %><span class="user-list__mine">あなたの本棚</span><% end %></span>
               <span class="user-list__meta">
-                <%= user.books_count %>冊<% if user.last_added_at %> · 最近の登録 <%= user.last_added_at.to_date.strftime("%Y.%m.%d") %><% end %>
+                <%= user.user_shelf_items_count %>冊<% if user.last_added_at %> · 最近の登録 <%= user.last_added_at.to_date.strftime("%Y.%m.%d") %><% end %>
               </span>
             <% end %>
           </li>

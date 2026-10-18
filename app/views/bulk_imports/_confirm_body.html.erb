@@ -11,32 +11,32 @@
       </div>
     <% end %>
     <%= form_with url: url_for(action: :create), method: :post, class: "bulk-import__confirm" do %>
-      <% @books_attributes.each_with_index do |attributes, index| %>
+      <% @user_shelf_items_attributes.each_with_index do |attributes, index| %>
         <% attributes.except("tags").each do |key, value| %>
-          <%= hidden_field_tag "books[#{index}][#{key}]", value, id: nil %>
+          <%= hidden_field_tag "user_shelf_items[#{index}][#{key}]", value, id: nil %>
         <% end %>
         <% Array(attributes["tags"]).each do |tag| %>
-          <%= hidden_field_tag "books[#{index}][tags][]", tag, id: nil %>
+          <%= hidden_field_tag "user_shelf_items[#{index}][tags][]", tag, id: nil %>
         <% end %>
       <% end %>
-      <p class="bulk-import__lead">次の<%= @form.books.size %>冊を登録します。登録するときの状態を選んでください。</p>
+      <p class="bulk-import__lead">次の<%= @form.user_shelf_items.size %>冊を登録します。登録するときの状態を選んでください。</p>
       <label class="bulk-import__status">
         <span>登録するときの状態</span>
         <%= select_tag :status, bulk_import_status_options(@status), class: "bulk-import__select" %>
       </label>
       <ol class="bulk-review">
-        <% @form.books.each do |book| %>
+        <% @form.user_shelf_items.each do |user_shelf_item| %>
           <li class="bulk-review__item">
             <div class="bulk-review__body">
-              <div class="bulk-review__source bulk-review__source--title"><%= book.title.presence || "ISBN #{book.isbn13}" %></div>
-              <span class="bulk-review__note"><%= bulk_import_book_detail(book) %></span>
+              <div class="bulk-review__source bulk-review__source--title"><%= user_shelf_item.title.presence || "ISBN #{user_shelf_item.isbn13}" %></div>
+              <span class="bulk-review__note"><%= bulk_import_user_shelf_item_detail(user_shelf_item) %></span>
             </div>
           </li>
         <% end %>
       </ol>
       <div class="bulk-import__actions">
         <button class="button" type="button" onclick="history.back()">戻る</button>
-        <%= button_tag "#{@form.books.size}冊を登録する", class: "button button--primary", disabled: @form.errors.any? %>
+        <%= button_tag "#{@form.user_shelf_items.size}冊を登録する", class: "button button--primary", disabled: @form.errors.any? %>
       </div>
     <% end %>
   </section>

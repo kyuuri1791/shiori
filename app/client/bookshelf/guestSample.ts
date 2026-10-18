@@ -1,10 +1,10 @@
-import type { Book } from "./types"
+import type { UserShelfItem } from "./types"
 
 const year = new Date().getFullYear()
 
-export const GUEST_SAMPLE_BOOK: Book = {
+export const GUEST_SAMPLE_USER_SHELF_ITEM: UserShelfItem = {
   id: -1,
-  edition_id: -1,
+  book_id: -1,
   isbn13: "9784101010137",
   title: "こころ",
   author: "夏目漱石",
@@ -17,7 +17,7 @@ export const GUEST_SAMPLE_BOOK: Book = {
     { t: new Date(year, 8, 10).getTime(), text: "（見本）下の章から一気に引き込まれる" },
   ],
   reading_dates: [`${year - 6}-07-21`, `${year}-09-14`],
-  edition: {
+  book: {
     id: -1,
     isbn13: "9784101010137",
     title: "こころ",

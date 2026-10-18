@@ -23,7 +23,7 @@ class AiSearch < ApplicationRecord
       .pick(:interpretation)
   end
 
-  def editions
-    Edition.preload(:identifiers).where(id: edition_ids).index_by(&:id).values_at(*edition_ids).compact
+  def books
+    Book.preload(:identifiers).where(id: book_ids).index_by(&:id).values_at(*book_ids).compact
   end
 end

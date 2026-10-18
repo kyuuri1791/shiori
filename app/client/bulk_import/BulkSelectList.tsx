@@ -1,4 +1,4 @@
-import { editionSummary } from "../bookshelf/text"
+import { bookSummary } from "../bookshelf/text"
 import { includedChoice, type Choice, type Row } from "./useBulkRows"
 
 type Props = { rows: Row[]; onChoice: (index: number, choice: Choice) => void }
@@ -21,7 +21,7 @@ export default function BulkSelectList({ rows, onChoice }: Props) {
               {row.line.title}{row.line.volume ? ` ${row.line.volume}巻` : ""}{!row.fixed && row.line.author && ` / ${row.line.author}`}
             </div>
             {row.fixed && row.match?.candidates[0] ? (
-              <span className="bulk-review__note">{editionSummary(row.match.candidates[0])}</span>
+              <span className="bulk-review__note">{bookSummary(row.match.candidates[0])}</span>
             ) : row.state === "pending" ? (
               <span className="bulk-review__note"><span className="spinner" aria-hidden="true" /> 照合しています…</span>
             ) : (
@@ -31,9 +31,9 @@ export default function BulkSelectList({ rows, onChoice }: Props) {
                 onChange={e => onChoice(index, e.target.value === "free" ? "free" : e.target.value === "" ? "skip" : Number(e.target.value))}
               >
                 {row.choice === "skip" && <option value="">登録しない</option>}
-                {row.match?.candidates.map((edition, i) => (
-                  <option key={edition.id} value={i} disabled={edition.owned}>
-                    {edition.title}（{editionSummary(edition)}）{edition.owned ? " — 本棚にあります" : ""}
+                {row.match?.candidates.map((book, i) => (
+                  <option key={book.id} value={i} disabled={book.owned}>
+                    {book.title}（{bookSummary(book)}）{book.owned ? " — 本棚にあります" : ""}
                   </option>
                 ))}
                 <option value="free">{row.match?.isbn13 ? `ISBN ${row.match.isbn13} だけで登録（マスタになし）` : `「${row.line.title}」として登録（マスタに紐付けない）`}</option>

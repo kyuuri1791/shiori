@@ -109,7 +109,7 @@ class OpenBdHarvester
         end
       end
       digest = Digest::SHA256.file(path).hexdigest
-      @logger.info("packaged #{count} editions into #{path} sha256=#{digest}")
+      @logger.info("packaged #{count} books into #{path} sha256=#{digest}")
       { path:, count:, sha256: digest }
     end
 

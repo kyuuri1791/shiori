@@ -1,0 +1,75 @@
+class BookMatcher
+  MAX_ITEMS = 10
+  MAX_CANDIDATES = 3
+  MAX_TEXT_LENGTH = 200
+  ISBN_LIKE = /\A[0-9０-９Xx\-－\s]+\z/
+  IGNORED_CHARACTERS = /[[:space:][:punct:]・、。「」『』（）]/
+  EDITION_NOTE = /(第[0-9一二三四五六七八九十]+版|新装改訂版|増補改訂版|改訂新版|新装版|改訂版|増補版|新版|完全版|愛蔵版|決定版|文庫版)\z/
+
+  Item = Data.define(:title, :author, :isbn, :volume)
+  Match = Data.define(:isbn13, :candidates, :owned_book_ids, :close_book_ids)
+
+  def self.item(title:, author: nil, isbn: nil, volume: nil)
+    volume = Integer(volume, exception: false)
+    Item.new(
+      title: title.to_s.strip.first(MAX_TEXT_LENGTH),
+      author: author.to_s.strip.first(MAX_TEXT_LENGTH),
+      isbn: isbn.to_s.strip.first(MAX_TEXT_LENGTH),
+      volume: volume&.between?(1, 9999) ? volume : nil
+    )
+  end
+
+  def initialize(user_shelf_items)
+    @user_shelf_items = user_shelf_items
+  end
+
+  def call(items)
+    raise ArgumentError, "too many items" if items.size > MAX_ITEMS
+
+    found = items.map { [ isbn_of(it), candidates_for(it) ] }
+    owned = owned_book_ids(found.flat_map { |_, candidates| candidates.map(&:id) })
+    found.zip(items).map do |(isbn, candidates), item|
+      close = isbn ? candidates.map(&:id) : candidates.select { close_title?(it.title, item.title) }.map(&:id)
+      Match.new(isbn13: isbn&.to_s, candidates:, owned_book_ids: owned & candidates.map(&:id), close_book_ids: close)
+    end
+  end
+
+  private
+    def close_title?(book_title, query)
+      wanted = comparable(query).sub(EDITION_NOTE, "")
+      wanted.present? && comparable(book_title).include?(wanted)
+    end
+
+    def comparable(text)
+      text.to_s.unicode_normalize(:nfkc).downcase.gsub(IGNORED_CHARACTERS, "")
+    end
+
+    def isbn_of(item)
+      source = item.isbn.presence || item.title
+      Isbn.parse(source.unicode_normalize(:nfkc)) if source.match?(ISBN_LIKE)
+    end
+
+    def candidates_for(item)
+      isbn = isbn_of(item)
+      return [ Book.preload(:identifiers).find_by_isbn(isbn.to_s) ].compact if isbn
+      return [] if item.title.empty?
+
+      volume_candidates(item).presence || Book.suggest(item.title, author: item.author).first(MAX_CANDIDATES)
+    rescue ActiveRecord::QueryCanceled
+      []
+    end
+
+    def volume_candidates(item)
+      return [] unless item.volume
+
+      interpretation = { "titles" => [ item.title ], "author" => item.author.presence, "target" => "volume", "volume" => item.volume }
+      ids = Book.with_statement_timeout(Book::SUGGEST_TIMEOUT_MS) { AiBookResolver.new(interpretation).books.first(MAX_CANDIDATES).map(&:id) }
+      Book.preload(:identifiers).where(id: ids).index_by(&:id).values_at(*ids).compact
+    end
+
+    def owned_book_ids(ids)
+      return [] if ids.empty?
+
+      @user_shelf_items.where(book_id: ids.uniq).distinct.pluck(:book_id)
+    end
+end

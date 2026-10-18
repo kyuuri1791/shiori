@@ -14,6 +14,6 @@ class UsersController < ApplicationController
 
   def show(id)
     owner = User.find(id)
-    @props = shelf_page_for(owner.books).merge(viewer: viewer_props(mode: "readonly", owner:))
+    @props = shelf_page_for(owner.user_shelf_items).merge(viewer: viewer_props(mode: "readonly", owner:))
   end
 end

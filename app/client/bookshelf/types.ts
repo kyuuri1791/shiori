@@ -2,7 +2,7 @@ export type Status = "reading" | "read" | "want"
 
 export type Note = { t: number; text: string }
 
-export type Edition = {
+export type Book = {
   id: number
   isbn13: string | null
   title: string
@@ -14,9 +14,9 @@ export type Edition = {
   close?: boolean
 }
 
-export type Book = {
+export type UserShelfItem = {
   id: number
-  edition_id: number | null
+  book_id: number | null
   isbn13: string | null
   title: string
   author: string
@@ -26,12 +26,12 @@ export type Book = {
   review: string
   notes: Note[]
   reading_dates: string[]
-  edition: Edition | null
+  book: Book | null
   discarded: boolean
   created_at: number
 }
 
-export type BookAttributes = Partial<Pick<Book, "title" | "author" | "status" | "rating" | "tags" | "review" | "notes" | "reading_dates" | "edition_id" | "isbn13">>
+export type UserShelfItemAttributes = Partial<Pick<UserShelfItem, "title" | "author" | "status" | "rating" | "tags" | "review" | "notes" | "reading_dates" | "book_id" | "isbn13">>
 
 export type PageSeriesItem = number | string
 
@@ -66,7 +66,7 @@ export type Filters = {
 }
 
 export type ShelfPage = {
-  books: Book[]
+  user_shelf_items: UserShelfItem[]
   page: PageInfo
   facets: Facets
   filters: Filters
@@ -91,15 +91,15 @@ export type AiSearch = {
   status: AiSearchStatus
   query: string
   interpretation: AiInterpretation | null
-  editions: Edition[]
+  books: Book[]
   error: string | null
 }
 
-export type EditionMatch = { isbn13: string | null; candidates: Edition[] }
+export type BookMatch = { isbn13: string | null; candidates: Book[] }
 
 export type IsbnLookup = {
-  edition: Edition | null
-  owned_book: { id: number; title: string } | null
+  book: Book | null
+  owned_user_shelf_item: { id: number; title: string } | null
 }
 
 export type ParsedLine = { title: string; author: string; tags: string[]; volume?: number | null }
@@ -117,8 +117,8 @@ export type AddResult = { state: "added" | "unmatched" | "owned" | "failed"; tit
 
 export type ToastState = { message: string; undoable: boolean; key: number }
 
-export type UpdateBook = (id: number, attributes: BookAttributes, label: string) => unknown
-export type SaveBook = (id: number, attributes: BookAttributes) => Promise<Book | null>
+export type UpdateUserShelfItem = (id: number, attributes: UserShelfItemAttributes, label: string) => unknown
+export type SaveUserShelfItem = (id: number, attributes: UserShelfItemAttributes) => Promise<UserShelfItem | null>
 
 export type ViewerMode = "owner" | "readonly" | "guest"
 

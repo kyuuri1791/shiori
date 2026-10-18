@@ -1,10 +1,9 @@
 module Api
   module Public
     class BooksController < ApplicationController
-      include ShelfPaginatable
-
-      def index(user_id)
-        render json: shelf_page_for(User.find(user_id).books)
+      def search(q: "", author: "")
+        books = Book.suggest(q.to_s.first(UserShelfItemQuery::MAX_TEXT_LENGTH), author: author.to_s.first(UserShelfItemQuery::MAX_TEXT_LENGTH))
+        render json: { books: books.map(&:as_card_json) }
       end
     end
   end

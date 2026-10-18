@@ -26,11 +26,11 @@ function postToConfirmation(kind: BulkImportKind, selected: Selected[]): void {
   }
   add("authenticity_token", csrfToken())
   selected.forEach(({ attributes }, index) => {
-    if (attributes.edition_id) add(`books[${index}][edition_id]`, String(attributes.edition_id))
-    if (attributes.isbn13) add(`books[${index}][isbn13]`, attributes.isbn13)
-    if (attributes.title) add(`books[${index}][title]`, attributes.title)
-    if (attributes.author) add(`books[${index}][author]`, attributes.author)
-    attributes.tags?.forEach(tag => add(`books[${index}][tags][]`, tag))
+    if (attributes.book_id) add(`user_shelf_items[${index}][book_id]`, String(attributes.book_id))
+    if (attributes.isbn13) add(`user_shelf_items[${index}][isbn13]`, attributes.isbn13)
+    if (attributes.title) add(`user_shelf_items[${index}][title]`, attributes.title)
+    if (attributes.author) add(`user_shelf_items[${index}][author]`, attributes.author)
+    attributes.tags?.forEach(tag => add(`user_shelf_items[${index}][tags][]`, tag))
   })
   document.body.append(form)
   form.submit()
@@ -48,8 +48,8 @@ export default function BulkImportPage({ kind }: { kind: BulkImportKind }) {
   useEffect(() => { if (photo.state.error) setError(photo.state.error) }, [photo.state.error])
 
   useEffect(() => {
-    const { status, editions, error: searchError } = series.state
-    if (status === "succeeded" && editions.length) setSource({ kind: "editions", editions: editions.slice(0, MAX_BULK_BOOKS) })
+    const { status, books, error: searchError } = series.state
+    if (status === "succeeded" && books.length) setSource({ kind: "books", books: books.slice(0, MAX_BULK_BOOKS) })
     else if (status === "succeeded") setError("シリーズの本が見つかりませんでした。書名を変えて試してください")
     else if (status === "failed") setError(searchError ?? "シリーズを探せませんでした")
     if (status === "succeeded" || status === "failed") series.reset()

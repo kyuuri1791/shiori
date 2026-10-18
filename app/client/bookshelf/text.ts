@@ -1,4 +1,4 @@
-import type { Book, Edition, Status } from "./types"
+import type { UserShelfItem, Book, Status } from "./types"
 
 export const STATUS: Record<Status, string> = { reading: "読んでる", read: "読んだ", want: "読みたい" }
 export const STATUS_KEYS = Object.keys(STATUS) as Status[]
@@ -10,13 +10,13 @@ export const today = (): string => {
   return d.toISOString().slice(0, 10)
 }
 
-export const lastReadOn = (book: Book): string | null => book.reading_dates.at(-1) ?? null
+export const lastReadOn = (userShelfItem: UserShelfItem): string | null => userShelfItem.reading_dates.at(-1) ?? null
 
 export const authorLine = (authors: string[]): string =>
   [authors.slice(0, 2).join("、"), authors.length > 2 ? "ほか" : null].filter(Boolean).join(" ")
 
-export const editionSummary = (edition: Edition): string =>
-  [authorLine(edition.authors), edition.publisher, edition.published_on?.slice(0, 4)].filter(Boolean).join(" · ")
+export const bookSummary = (book: Book): string =>
+  [authorLine(book.authors), book.publisher, book.published_on?.slice(0, 4)].filter(Boolean).join(" · ")
 
 export function normalizeIsbn(text: string): string | null {
   const digits = text.replace(/[^\dXx]/g, "").toUpperCase()
@@ -35,11 +35,11 @@ export function looksLikeIsbn(text: string): boolean {
 
 export type ExternalTarget = { isbn13: string | null; title: string; author: string }
 
-export const externalTargetOfBook = (book: Book): ExternalTarget =>
-  ({ isbn13: book.edition?.isbn13 ?? book.isbn13, title: book.title, author: book.author })
+export const externalTargetOfUserShelfItem = (userShelfItem: UserShelfItem): ExternalTarget =>
+  ({ isbn13: userShelfItem.book?.isbn13 ?? userShelfItem.isbn13, title: userShelfItem.title, author: userShelfItem.author })
 
-export const externalTargetOfEdition = (edition: Edition): ExternalTarget =>
-  ({ isbn13: edition.isbn13, title: edition.title, author: authorLine(edition.authors) })
+export const externalTargetOfBook = (book: Book): ExternalTarget =>
+  ({ isbn13: book.isbn13, title: book.title, author: authorLine(book.authors) })
 
 export function googleBooksUrl({ isbn13, title, author }: ExternalTarget): string {
   if (isbn13) return `https://books.google.co.jp/books?vid=ISBN${encodeURIComponent(isbn13)}`

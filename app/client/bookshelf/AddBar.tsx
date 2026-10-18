@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent, type ReactNode } from "react"
-import { STATUS, STATUS_KEYS, externalTargetOfEdition, googleBooksUrl, looksLikeIsbn } from "./text"
-import EditionSuggest, { IDLE_SEARCH, useEditionSearch, type Searcher } from "./EditionSuggest"
+import { STATUS, STATUS_KEYS, externalTargetOfBook, googleBooksUrl, looksLikeIsbn } from "./text"
+import BookSuggest, { IDLE_SEARCH, useBookSearch, type Searcher } from "./BookSuggest"
 import useAiSearch, { describeInterpretation, isGuess } from "./useAiSearch"
-import type { Edition, ParsedLine, Status } from "./types"
+import type { Book, ParsedLine, Status } from "./types"
 
 type Mode = "ai" | "keyword"
 
@@ -30,12 +30,12 @@ type FormProps = {
   notice: ReactNode
   searcher: Searcher
   onAddText: (item: ParsedLine) => Promise<boolean>
-  onAddEdition: (edition: Edition) => Promise<boolean>
+  onAddBook: (book: Book) => Promise<boolean>
   onAddIsbn: (isbn: string) => Promise<boolean>
   registerSubmit: (submit: () => void) => void
 }
 
-function useListKeys(candidates: Edition[], open: boolean, setOpen: (open: boolean) => void, onSubmit: (picked: Edition | null) => void) {
+function useListKeys(candidates: Book[], open: boolean, setOpen: (open: boolean) => void, onSubmit: (picked: Book | null) => void) {
   const [active, setActive] = useState(-1)
   useEffect(() => { setActive(-1) }, [candidates])
 
@@ -50,7 +50,7 @@ function useListKeys(candidates: Edition[], open: boolean, setOpen: (open: boole
   return { active, setActive, onKeyDown }
 }
 
-function AiForm({ busy, canUseAi, notice, onAddText, onAddEdition, onAddIsbn, registerSubmit }: FormProps) {
+function AiForm({ busy, canUseAi, notice, onAddText, onAddBook, onAddIsbn, registerSubmit }: FormProps) {
   const [text, setText] = useState("")
   const [open, setOpen] = useState(false)
   const ai = useAiSearch()
@@ -60,16 +60,16 @@ function AiForm({ busy, canUseAi, notice, onAddText, onAddEdition, onAddIsbn, re
   const reset = () => { setText(""); ai.reset() }
   const done = (ok: boolean) => { if (ok) reset() }
 
-  function submit(picked: Edition | null) {
+  function submit(picked: Book | null) {
     if (busy || !canUseAi) return
-    if (picked) onAddEdition(picked).then(done)
+    if (picked) onAddBook(picked).then(done)
     else if (isbnMode) onAddIsbn(text).then(done)
     else if (single) { setOpen(true); ai.start(single) }
   }
 
-  const editions = ai.state.editions.slice(0, AI_SUGGEST_LIMIT)
-  const keys = useListKeys(editions, open, setOpen, submit)
-  registerSubmit(() => submit(editions[keys.active] ?? null))
+  const books = ai.state.books.slice(0, AI_SUGGEST_LIMIT)
+  const keys = useListKeys(books, open, setOpen, submit)
+  registerSubmit(() => submit(books[keys.active] ?? null))
 
   let header: ReactNode = null
   if (ai.state.status === "pending") header = <span role="status"><span className="spinner" aria-hidden="true" /> AI が探しています…</span>
@@ -99,9 +99,9 @@ function AiForm({ busy, canUseAi, notice, onAddText, onAddEdition, onAddIsbn, re
       />
       {!canUseAi && <p className="add-bar__locked-notice">{notice}</p>}
       {open && single && ai.state.status !== "idle" && (
-        <EditionSuggest
+        <BookSuggest
           floating
-          search={ai.state.status === "pending" ? IDLE_SEARCH : { editions, loading: false, error: null, searched: ai.state.query }}
+          search={ai.state.status === "pending" ? IDLE_SEARCH : { books, loading: false, error: null, searched: ai.state.query }}
           activeIndex={keys.active}
           header={header}
           footer={footer}
@@ -114,14 +114,14 @@ function AiForm({ busy, canUseAi, notice, onAddText, onAddEdition, onAddIsbn, re
   )
 }
 
-const openExternally = (edition: Edition) =>
-  window.open(googleBooksUrl(externalTargetOfEdition(edition)), "_blank", "noopener,noreferrer")
+const openExternally = (book: Book) =>
+  window.open(googleBooksUrl(externalTargetOfBook(book)), "_blank", "noopener,noreferrer")
 
-function KeywordForm({ busy, canRegister, notice, searcher, onAddText, onAddEdition, onAddIsbn, registerSubmit }: FormProps) {
+function KeywordForm({ busy, canRegister, notice, searcher, onAddText, onAddBook, onAddIsbn, registerSubmit }: FormProps) {
   const [form, setForm] = useState(EMPTY_FORM)
   const [open, setOpen] = useState(false)
   const title = form.title.trim()
-  const search = useEditionSearch(title, open && !!title, form.author, searcher)
+  const search = useBookSearch(title, open && !!title, form.author, searcher)
 
   const set = (key: keyof typeof EMPTY_FORM) => (e: ChangeEvent<HTMLInputElement>) => {
     setForm(f => ({ ...f, [key]: e.target.value }))
@@ -129,16 +129,16 @@ function KeywordForm({ busy, canRegister, notice, searcher, onAddText, onAddEdit
   }
   const done = (ok: boolean) => { if (ok) setForm(EMPTY_FORM) }
 
-  function submit(picked: Edition | null) {
+  function submit(picked: Book | null) {
     if (busy) return
     if (!canRegister) { if (picked) openExternally(picked); return }
-    if (picked) onAddEdition(picked).then(done)
+    if (picked) onAddBook(picked).then(done)
     else if (form.isbn.trim()) onAddIsbn(form.isbn).then(done)
     else if (title) onAddText({ title, author: form.author.trim(), tags: [] }).then(done)
   }
 
-  const keys = useListKeys(search.editions, open, setOpen, submit)
-  registerSubmit(() => submit(search.editions[keys.active] ?? null))
+  const keys = useListKeys(search.books, open, setOpen, submit)
+  registerSubmit(() => submit(search.books[keys.active] ?? null))
 
   return (
     <div className="add-bar__body">
@@ -151,7 +151,7 @@ function KeywordForm({ busy, canRegister, notice, searcher, onAddText, onAddEdit
             onChange={set("title")} onFocus={() => setOpen(true)} onBlur={() => setOpen(false)} onKeyDown={keys.onKeyDown}
           />
           {open && title && (
-            <EditionSuggest
+            <BookSuggest
               floating
               search={search}
               activeIndex={keys.active}
@@ -192,12 +192,12 @@ type Props = {
   addStatus: Status
   onAddStatus: (status: Status) => void
   onAddText: (item: ParsedLine) => Promise<boolean>
-  onAddEdition: (edition: Edition, tags: string[]) => Promise<boolean>
+  onAddBook: (book: Book, tags: string[]) => Promise<boolean>
   onAddIsbn: (isbn: string) => Promise<boolean>
   onScan: () => void
 }
 
-export default function AddBar({ canRegister, canUseAi, notice, searcher, addStatus, onAddStatus, onAddText, onAddEdition, onAddIsbn, onScan }: Props) {
+export default function AddBar({ canRegister, canUseAi, notice, searcher, addStatus, onAddStatus, onAddText, onAddBook, onAddIsbn, onScan }: Props) {
   const [storedMode, setStoredMode] = useState<Mode>(loadMode)
   const [viewerMode, setViewerMode] = useState<Mode>("ai")
   const mode: Mode = canUseAi ? storedMode : viewerMode
@@ -220,7 +220,7 @@ export default function AddBar({ canRegister, canUseAi, notice, searcher, addSta
     notice,
     searcher,
     onAddText: guard(onAddText),
-    onAddEdition: guard((edition: Edition) => onAddEdition(edition, [])),
+    onAddBook: guard((book: Book) => onAddBook(book, [])),
     onAddIsbn: guard(onAddIsbn),
     registerSubmit: fn => { submitRef.current = fn },
   }

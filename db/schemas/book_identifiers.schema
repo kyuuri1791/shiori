@@ -1,0 +1,10 @@
+create_table "book_identifiers", force: :cascade do |t|
+  t.bigint "book_id", null: false
+  t.string "scheme", null: false
+  t.string "value", null: false
+  t.timestamps
+  t.index [ "scheme", "value" ], unique: true
+  t.index [ "book_id" ]
+end
+add_foreign_key "book_identifiers", "books"
+add_check_constraint "book_identifiers", "scheme::text <> 'isbn13'::text OR value::text ~ '^97[89][0-9]{10}$'::text", name: "book_identifiers_isbn13_format"

@@ -6,7 +6,7 @@ class MasterLoader
   CONFIG_PATH = Rails.root.join("config/master_data.yml")
 
   def self.from_config(logger: Logger.new($stdout))
-    config = YAML.safe_load_file(CONFIG_PATH).fetch("editions")
+    config = YAML.safe_load_file(CONFIG_PATH).fetch("books")
     new(path: Rails.root.join(config.fetch("path")), sha256: config.fetch("sha256"), logger:)
   end
 
@@ -26,22 +26,22 @@ class MasterLoader
         CREATE TEMP TABLE master_staging (isbn13 text, title text, authors text[], publisher text, published_on text, cover_url text) ON COMMIT DROP
       SQL
       copy(connection.raw_connection, path)
-      connection.execute("DELETE FROM master_staging s USING edition_identifiers i WHERE i.scheme = 'isbn13' AND i.value = s.isbn13")
+      connection.execute("DELETE FROM master_staging s USING book_identifiers i WHERE i.scheme = 'isbn13' AND i.value = s.isbn13")
       connection.exec_update(<<~SQL)
         WITH staged AS MATERIALIZED (
-          SELECT nextval('editions_id_seq') AS id, d.* FROM (SELECT DISTINCT ON (isbn13) * FROM master_staging ORDER BY isbn13) d
+          SELECT nextval('books_id_seq') AS id, d.* FROM (SELECT DISTINCT ON (isbn13) * FROM master_staging ORDER BY isbn13) d
         ),
         inserted AS (
-          INSERT INTO editions (id, title, authors, publisher, published_on, cover_url, created_at, updated_at)
+          INSERT INTO books (id, title, authors, publisher, published_on, cover_url, created_at, updated_at)
           SELECT id, title, authors, publisher, published_on, cover_url, now(), now() FROM staged
         )
-        INSERT INTO edition_identifiers (edition_id, scheme, value, created_at, updated_at)
+        INSERT INTO book_identifiers (book_id, scheme, value, created_at, updated_at)
         SELECT id, 'isbn13', isbn13, now(), now() FROM staged
       SQL
     end
-    connection.execute("ANALYZE editions")
-    connection.execute("ANALYZE edition_identifiers")
-    @logger.info("inserted #{inserted} editions from #{path.basename}")
+    connection.execute("ANALYZE books")
+    connection.execute("ANALYZE book_identifiers")
+    @logger.info("inserted #{inserted} books from #{path.basename}")
     inserted
   end
 

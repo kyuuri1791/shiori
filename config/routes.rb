@@ -1,8 +1,8 @@
 Rails.application.routes.draw do
   resource :session
 
-  root "books#index"
-  resources :books, only: :index
+  root "user_shelf_items#index"
+  resources :user_shelf_items, only: :index
   resources :users, only: %i[index show]
   namespace :bulk_imports do
     resources :photos, only: %i[new create] do
@@ -20,12 +20,12 @@ Rails.application.routes.draw do
   end
 
   namespace :api do
-    resources :books, only: %i[index create update destroy]
-    resource :books_bulk, only: :create, controller: "books_bulk"
+    resources :user_shelf_items, only: %i[index create update destroy]
+    resource :user_shelf_items_bulk, only: :create, controller: "user_shelf_items_bulk"
     resources :ai_searches, only: %i[create show]
-    resources :edition_matches, only: :create
+    resources :book_matches, only: :create
     resources :shelf_photo_scans, only: %i[create show]
-    resources :editions, only: [] do
+    resources :books, only: [] do
       collection do
         get :search
         get :lookup
@@ -34,9 +34,9 @@ Rails.application.routes.draw do
 
     namespace :public do
       resources :users, only: [] do
-        resources :books, only: :index
+        resources :user_shelf_items, only: :index
       end
-      resources :editions, only: [] do
+      resources :books, only: [] do
         get :search, on: :collection
       end
     end

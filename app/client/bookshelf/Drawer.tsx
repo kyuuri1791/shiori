@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react"
 import { lookupIsbn } from "./api"
-import { STATUS, STATUS_KEYS, authorLine, editionSummary, externalTargetOfBook, looksLikeIsbn, today } from "./text"
+import { STATUS, STATUS_KEYS, authorLine, bookSummary, externalTargetOfUserShelfItem, looksLikeIsbn, today } from "./text"
 import ExternalLink from "./ExternalLink"
 import Cover from "./Cover"
-import EditionSuggest, { IDLE_SEARCH, useEditionSearch, type EditionSearchState } from "./EditionSuggest"
+import BookSuggest, { IDLE_SEARCH, useBookSearch, type BookSearchState } from "./BookSuggest"
 import useCloseOnOutsideClick from "./useCloseOnOutsideClick"
-import type { Book, Edition, SaveBook, Status, UpdateBook } from "./types"
+import type { UserShelfItem, Book, SaveUserShelfItem, Status, UpdateUserShelfItem } from "./types"
 
 type DraftBind = { onFocus: () => void; onBlurCapture: () => void }
 
@@ -22,58 +22,58 @@ function useDraft<T>(value: T): [T, Dispatch<SetStateAction<T>>, DraftBind] {
 
 type Handlers = {
   onClose: () => void
-  onUpdate: UpdateBook
-  onSave: SaveBook
+  onUpdate: UpdateUserShelfItem
+  onSave: SaveUserShelfItem
   onStatus: (id: number, status: Status) => void
-  onDelete: (book: Book) => void
+  onDelete: (userShelfItem: UserShelfItem) => void
 }
 
-export default function Drawer({ book, ...props }: Handlers & { book: Book | null }) {
-  const last = useRef(book)
-  if (book) last.current = book
-  const shown = book || last.current
-  const ref = useCloseOnOutsideClick<HTMLElement>(!!book, props.onClose)
+export default function Drawer({ userShelfItem, ...props }: Handlers & { userShelfItem: UserShelfItem | null }) {
+  const last = useRef(userShelfItem)
+  if (userShelfItem) last.current = userShelfItem
+  const shown = userShelfItem || last.current
+  const ref = useCloseOnOutsideClick<HTMLElement>(!!userShelfItem, props.onClose)
   return (
-    <aside ref={ref} className={`drawer${book ? " drawer--open" : ""}`} aria-label="本の詳細" inert={!book}>
-      {shown && <DrawerBody key={shown.id} book={shown} active={!!book} {...props} />}
+    <aside ref={ref} className={`drawer${userShelfItem ? " drawer--open" : ""}`} aria-label="本の詳細" inert={!userShelfItem}>
+      {shown && <DrawerBody key={shown.id} userShelfItem={shown} active={!!userShelfItem} {...props} />}
     </aside>
   )
 }
 
-function EditionPanel({ book, onUpdate }: { book: Book; onUpdate: UpdateBook }) {
+function BookPanel({ userShelfItem, onUpdate }: { userShelfItem: UserShelfItem; onUpdate: UpdateUserShelfItem }) {
   const [searching, setSearching] = useState(false)
-  const [query, setQuery] = useState(book.title)
-  const [isbnResult, setIsbnResult] = useState<EditionSearchState | null>(null)
+  const [query, setQuery] = useState(userShelfItem.title)
+  const [isbnResult, setIsbnResult] = useState<BookSearchState | null>(null)
   const isbnMode = looksLikeIsbn(query)
-  const search = useEditionSearch(query, searching && !isbnMode)
-  const edition = book.edition
+  const search = useBookSearch(query, searching && !isbnMode)
+  const book = userShelfItem.book
 
-  const link = (picked: Edition) => {
+  const link = (picked: Book) => {
     setSearching(false)
-    onUpdate(book.id, { edition_id: picked.id, title: picked.title, author: authorLine(picked.authors) }, "本のマスタに紐付けました")
+    onUpdate(userShelfItem.id, { book_id: picked.id, title: picked.title, author: authorLine(picked.authors) }, "本のマスタに紐付けました")
   }
 
   async function findByIsbn() {
-    setIsbnResult({ editions: [], loading: true, error: null, searched: query })
+    setIsbnResult({ books: [], loading: true, error: null, searched: query })
     try {
-      const { edition: found } = await lookupIsbn(query)
-      setIsbnResult({ editions: found ? [found] : [], loading: false, error: null, searched: query })
+      const { book: found } = await lookupIsbn(query)
+      setIsbnResult({ books: found ? [found] : [], loading: false, error: null, searched: query })
     } catch (error) {
-      setIsbnResult({ editions: [], loading: false, error: error instanceof Error ? error.message : "検索に失敗しました", searched: query })
+      setIsbnResult({ books: [], loading: false, error: error instanceof Error ? error.message : "検索に失敗しました", searched: query })
     }
   }
 
-  if (edition) {
+  if (book) {
     return (
-      <div className="edition-card">
-        <Cover edition={edition} title={edition.title} large />
-        <div className="edition-card__body">
-          <strong>{edition.title}</strong>
-          <span>{editionSummary(edition)}</span>
-          {edition.isbn13 && <span className="edition-card__isbn">ISBN {edition.isbn13}</span>}
-          <ExternalLink target={externalTargetOfBook(book)} />
-          <div className="edition-card__actions">
-            <button className="button button--small" type="button" onClick={() => onUpdate(book.id, { edition_id: null }, "本のマスタとの紐付けを外しました")}>紐付けを外す</button>
+      <div className="book-card">
+        <Cover book={book} title={book.title} large />
+        <div className="book-card__body">
+          <strong>{book.title}</strong>
+          <span>{bookSummary(book)}</span>
+          {book.isbn13 && <span className="book-card__isbn">ISBN {book.isbn13}</span>}
+          <ExternalLink target={externalTargetOfUserShelfItem(userShelfItem)} />
+          <div className="book-card__actions">
+            <button className="button button--small" type="button" onClick={() => onUpdate(userShelfItem.id, { book_id: null }, "本のマスタとの紐付けを外しました")}>紐付けを外す</button>
           </div>
         </div>
       </div>
@@ -81,18 +81,18 @@ function EditionPanel({ book, onUpdate }: { book: Book; onUpdate: UpdateBook }) 
   }
 
   return (
-    <div className="edition-card edition-card--unmatched">
-      <div className="edition-card__body">
-        <span className="edition-card__note">本のマスタに紐付いていません。紐付けると書誌情報と書影が付き、同じ本の重複に気づけるようになります。</span>
-        {book.isbn13 && <span className="edition-card__isbn">読み取ったISBN {book.isbn13}（本のマスタに未登録）</span>}
-        <ExternalLink target={externalTargetOfBook(book)} />
+    <div className="book-card book-card--unmatched">
+      <div className="book-card__body">
+        <span className="book-card__note">本のマスタに紐付いていません。紐付けると書誌情報と書影が付き、同じ本の重複に気づけるようになります。</span>
+        {userShelfItem.isbn13 && <span className="book-card__isbn">読み取ったISBN {userShelfItem.isbn13}（本のマスタに未登録）</span>}
+        <ExternalLink target={externalTargetOfUserShelfItem(userShelfItem)} />
         {!searching && (
-          <div className="edition-card__actions">
+          <div className="book-card__actions">
             <button className="button button--small" type="button" onClick={() => setSearching(true)}>マスタから探す</button>
           </div>
         )}
         {searching && (
-          <div className="edition-card__search">
+          <div className="book-card__search">
             <input
               type="text" className="field__input" aria-label="タイトルかISBNで探す" value={query} autoFocus
               onChange={e => { setQuery(e.target.value); setIsbnResult(null) }}
@@ -100,13 +100,13 @@ function EditionPanel({ book, onUpdate }: { book: Book; onUpdate: UpdateBook }) 
                 if (e.key === "Enter" && !e.nativeEvent.isComposing && isbnMode) { e.preventDefault(); findByIsbn() }
               }}
             />
-            {isbnMode && !isbnResult && <span className="edition-card__note">ISBNで探すにはEnterを押してください</span>}
-            <EditionSuggest
+            {isbnMode && !isbnResult && <span className="book-card__note">ISBNで探すにはEnterを押してください</span>}
+            <BookSuggest
               search={isbnMode ? (isbnResult ?? IDLE_SEARCH) : search}
               emptyText="候補が見つかりません。タイトルを短くするか、ISBNで探してください"
               onPick={link}
             />
-            <div className="edition-card__actions">
+            <div className="book-card__actions">
               <button className="button button--small" type="button" onClick={() => setSearching(false)}>やめる</button>
             </div>
           </div>
@@ -116,13 +116,13 @@ function EditionPanel({ book, onUpdate }: { book: Book; onUpdate: UpdateBook }) 
   )
 }
 
-function ReadingList({ book, onUpdate }: { book: Book; onUpdate: UpdateBook }) {
-  const dates = book.reading_dates
+function ReadingList({ userShelfItem, onUpdate }: { userShelfItem: UserShelfItem; onUpdate: UpdateUserShelfItem }) {
+  const dates = userShelfItem.reading_dates
 
   function save(next: string[], label: string) {
     const attributes: { reading_dates: string[]; status?: Status } = { reading_dates: [...next].sort() }
-    if (next.length && book.status !== "read") attributes.status = "read"
-    onUpdate(book.id, attributes, label)
+    if (next.length && userShelfItem.status !== "read") attributes.status = "read"
+    onUpdate(userShelfItem.id, attributes, label)
   }
 
   return (
@@ -151,11 +151,11 @@ function ReadingList({ book, onUpdate }: { book: Book; onUpdate: UpdateBook }) {
   )
 }
 
-function DrawerBody({ book, active, onClose, onUpdate, onSave, onStatus, onDelete }: Handlers & { book: Book; active: boolean }) {
-  const [title, setTitle, titleBind] = useDraft(book.title)
-  const [author, setAuthor, authorBind] = useDraft(book.author)
-  const [tags, setTags, tagsBind] = useDraft(book.tags.join(" "))
-  const [review, setReview, reviewBind] = useDraft(book.review)
+function DrawerBody({ userShelfItem, active, onClose, onUpdate, onSave, onStatus, onDelete }: Handlers & { userShelfItem: UserShelfItem; active: boolean }) {
+  const [title, setTitle, titleBind] = useDraft(userShelfItem.title)
+  const [author, setAuthor, authorBind] = useDraft(userShelfItem.author)
+  const [tags, setTags, tagsBind] = useDraft(userShelfItem.tags.join(" "))
+  const [review, setReview, reviewBind] = useDraft(userShelfItem.review)
   const [note, setNote] = useState("")
   const [saveState, setSaveState] = useState("")
   const reviewTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -167,7 +167,7 @@ function DrawerBody({ book, active, onClose, onUpdate, onSave, onStatus, onDelet
     if (pendingReview.current == null) return
     const value = pendingReview.current
     pendingReview.current = null
-    onSave(book.id, { review: value }).then(rs => setSaveState(rs ? "保存しました" : "保存できませんでした"))
+    onSave(userShelfItem.id, { review: value }).then(rs => setSaveState(rs ? "保存しました" : "保存できませんでした"))
   }
   const flushRef = useRef(flushReview)
   flushRef.current = flushReview
@@ -175,8 +175,8 @@ function DrawerBody({ book, active, onClose, onUpdate, onSave, onStatus, onDelet
   useEffect(() => { if (!active) flushRef.current() }, [active])
 
   function commitText(key: "title" | "author", value: string, label: string) {
-    if (key === "title" && !value) { setTitle(book.title); return }
-    onUpdate(book.id, { [key]: value }, label)
+    if (key === "title" && !value) { setTitle(userShelfItem.title); return }
+    onUpdate(userShelfItem.id, { [key]: value }, label)
   }
 
   return (
@@ -199,16 +199,16 @@ function DrawerBody({ book, active, onClose, onUpdate, onSave, onStatus, onDelet
             onBlur={e => commitText("author", e.target.value.trim(), "著者を変更しました")}
           />
         </div>
-        <EditionPanel book={book} onUpdate={onUpdate} />
+        <BookPanel userShelfItem={userShelfItem} onUpdate={onUpdate} />
         <div className="drawer__pair">
           <div className="field">
             <span className="field__label">状態</span>
             <div className="segmented" role="group" aria-label="状態">
               {STATUS_KEYS.map(key => (
                 <button
-                  key={key} type="button" aria-pressed={book.status === key}
-                  className={`segmented__option${book.status === key ? " segmented__option--active" : ""}`}
-                  onClick={() => onStatus(book.id, key)}
+                  key={key} type="button" aria-pressed={userShelfItem.status === key}
+                  className={`segmented__option${userShelfItem.status === key ? " segmented__option--active" : ""}`}
+                  onClick={() => onStatus(userShelfItem.id, key)}
                 >{STATUS[key]}</button>
               ))}
             </div>
@@ -219,14 +219,14 @@ function DrawerBody({ book, active, onClose, onUpdate, onSave, onStatus, onDelet
               {[1, 2, 3, 4, 5].map(n => (
                 <button
                   key={n} type="button" aria-label={`${n}点`}
-                  className={`rating__star${n <= book.rating ? " rating__star--on" : ""}`}
-                  onClick={() => onUpdate(book.id, { rating: book.rating === n ? 0 : n }, "評価を変更しました")}
+                  className={`rating__star${n <= userShelfItem.rating ? " rating__star--on" : ""}`}
+                  onClick={() => onUpdate(userShelfItem.id, { rating: userShelfItem.rating === n ? 0 : n }, "評価を変更しました")}
                 >★</button>
               ))}
             </div>
           </div>
         </div>
-        <ReadingList book={book} onUpdate={onUpdate} />
+        <ReadingList userShelfItem={userShelfItem} onUpdate={onUpdate} />
         <div className="field">
           <label className="field__label" htmlFor="drawerTags">タグ（スペース区切り）</label>
           <input
@@ -234,7 +234,7 @@ function DrawerBody({ book, active, onClose, onUpdate, onSave, onStatus, onDelet
             onChange={e => setTags(e.target.value)}
             onBlur={e => {
               const next = [...new Set(e.target.value.split(/[\s,、]+/).map(t => t.replace(/^[#＃]/, "")).filter(Boolean))]
-              onUpdate(book.id, { tags: next }, "タグを変更しました")
+              onUpdate(userShelfItem.id, { tags: next }, "タグを変更しました")
             }}
           />
         </div>
@@ -264,23 +264,23 @@ function DrawerBody({ book, active, onClose, onUpdate, onSave, onStatus, onDelet
               const text = note.trim()
               if (!text) return
               setNote("")
-              onSave(book.id, { notes: [...book.notes, { t: Date.now(), text }] })
+              onSave(userShelfItem.id, { notes: [...userShelfItem.notes, { t: Date.now(), text }] })
             }}
           />
           <ul className="note-list">
-            {[...book.notes].reverse().map(n => (
+            {[...userShelfItem.notes].reverse().map(n => (
               <li className="note-list__item" key={n.t}>
                 <span className="note-list__date">{new Date(n.t).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })}</span>
                 <p className="note-list__text">{n.text}</p>
-                <button className="note-list__delete" type="button" onClick={() => onUpdate(book.id, { notes: book.notes.filter(x => x.t !== n.t) }, "メモを消しました")}>消す</button>
+                <button className="note-list__delete" type="button" onClick={() => onUpdate(userShelfItem.id, { notes: userShelfItem.notes.filter(x => x.t !== n.t) }, "メモを消しました")}>消す</button>
               </li>
             ))}
           </ul>
         </div>
       </div>
       <div className="drawer__foot">
-        <button className="button button--danger" type="button" onClick={() => onDelete(book)}>この本を削除</button>
-        <span className="drawer__created">登録 {new Date(book.created_at).toLocaleDateString("ja-JP")}</span>
+        <button className="button button--danger" type="button" onClick={() => onDelete(userShelfItem)}>この本を削除</button>
+        <span className="drawer__created">登録 {new Date(userShelfItem.created_at).toLocaleDateString("ja-JP")}</span>
       </div>
     </>
   )

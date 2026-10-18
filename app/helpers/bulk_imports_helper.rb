@@ -8,12 +8,12 @@ module BulkImportsHelper
   end
 
   def bulk_import_status_options(selected)
-    options_for_select(BULK_IMPORT_STATUS_ORDER.map { [ Book.status.find_value(it).text, it ] }, selected)
+    options_for_select(BULK_IMPORT_STATUS_ORDER.map { [ UserShelfItem.status.find_value(it).text, it ] }, selected)
   end
 
-  def bulk_import_book_detail(book)
-    return [ book.edition.author_line, book.edition.publisher, book.edition.published_on.to_s.first(4) ].compact_blank.join(" · ") if book.edition
-    return "本のマスタにないので ISBN だけで登録します" if book.isbn13
+  def bulk_import_user_shelf_item_detail(user_shelf_item)
+    return [ user_shelf_item.book.author_line, user_shelf_item.book.publisher, user_shelf_item.book.published_on.to_s.first(4) ].compact_blank.join(" · ") if user_shelf_item.book
+    return "本のマスタにないので ISBN だけで登録します" if user_shelf_item.isbn13
 
     "本のマスタに紐付けずに登録します"
   end
